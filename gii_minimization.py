@@ -1,5 +1,7 @@
 #@author: rymo1354
 
+import os
+from pathlib import Path
 import pandas as pd
 import numpy as np
 from pymatgen.core.sites import PeriodicSite
@@ -12,7 +14,8 @@ class BVparams():
 
     def __init__(self, bv_file_path='bvparm16.cif'):
         ''' Taken from matminer python package '''
-        self.bvfile = bv_file_path
+        parent_location = Path(os.path.abspath(__file__)).parent.absolute()
+        self.bvfile = os.path.join(parent_location, bv_file_path) # Check gii_minimization directory for bv_file_path
         params = pd.read_csv(self.bvfile, sep='\s+',
                                   header=None,
                                   names=['Atom1', 'Atom1_valence',
