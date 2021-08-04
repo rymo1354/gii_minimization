@@ -13,7 +13,7 @@ import time
 class BVparams():
 
     def __init__(self, bv_file_path='bvparm16.cif'):
-        ''' Taken from matminer python package '''
+        ''' Inspired by matminer BVparams '''
         parent_location = Path(os.path.abspath(__file__)).parent.absolute()
         self.bvfile = os.path.join(parent_location, bv_file_path) # Check gii_minimization directory for bv_file_path
         params = pd.read_csv(self.bvfile, sep='\s+',
@@ -28,28 +28,50 @@ class BVparams():
                                   engine="python")
         self.params = params
 
-    def get_bv_params(self, cation, anion, cat_val, an_val):
+    def get_bv_params(self, cation, anion, cat_val, an_val, fix_B=True, B=0.37):
         """Lookup bond valence parameters from IUPAC table.
         Args:
             cation (Element): cation element
             anion (Element): anion element
             cat_val (Integer): cation formal oxidation state
             an_val (Integer): anion formal oxidation state
+            fix_B (Boolean): whether to fix B parameter; defaults to True
+            B (float): B parameter to fix GII calculation to; B=0.37 most common
         Returns:
             bond_val_list: dataframe of bond valence parameters
         """
-        def get_params(cation, cat_oxi, anion, an_oxi):
-            bond_val_list = self.params.loc[(bv_data['Atom1'] == str(cation)) \
-                                    & (bv_data['Atom1_valence'] == cat_oxi) \
-                                    & (bv_data['Atom2'] == str(anion)) \
-                                    & (bv_data['Atom2_valence'] == an_oxi)]
-            return bond_val_list.iloc[0] # Take first value if multiple exist
+        def get_params(cation, cat_oxi, anion, an_oxi, fix_B, B):
+            if fix_B == False:
+                bond_val_list = self.params.loc[(bv_data['Atom1'] == str(cation)) \
+                                        & (bv_data['Atom1_valence'] == cat_oxi) \
+                                        & (bv_data['Atom2'] == str(anion)) \
+                                        & (bv_data['Atom2_valence'] == an_oxi)]
+                return bond_val_list.iloc[0] # Take first value if multiple exist
+            else:
+                try:
+                    bond_val_list = self.params.loc[(bv_data['Atom1'] == str(cation)) \
+                                            & (bv_data['Atom1_valence'] == cat_oxi) \
+                                            & (bv_data['Atom2'] == str(anion)) \
+                                            & (bv_data['Atom2_valence'] == an_oxi) \
+                                            & (bv_data['B'] == B)]
+                    return bond_val_list.iloc[0]
+                except IndexError:
+                    if len(cation) == 2: # no possibility that _ is missing
+                        print('%s(%s)-%s(%s) with B=%s does not exist; returning first tabulated' \
+                                            % (cation, str(cat_oxi), anion, str(an_oxi), str(B)))
+                    else:
+                        pass
+                    bond_val_list = self.params.loc[(bv_data['Atom1'] == str(cation)) \
+                                            & (bv_data['Atom1_valence'] == cat_oxi) \
+                                            & (bv_data['Atom2'] == str(anion)) \
+                                            & (bv_data['Atom2_valence'] == an_oxi)]
+                    return bond_val_list.iloc[0]
 
         bv_data = self.params
         try:
-            return get_params(cation, cat_val, anion, an_val)
-        except IndexError: # For single-letter cations tabulated with following _
-            return get_params(cation + '_', cat_val, anion, an_val)
+            return get_params(cation, cat_val, anion, an_val, fix_B, B)
+        except IndexError: # For single-letter cations tabulated with following _, specific behavior of bvparm16.cif
+            return get_params(cation + '_', cat_val, anion, an_val, fix_B, B)
 
 class GIICalculator():
 
