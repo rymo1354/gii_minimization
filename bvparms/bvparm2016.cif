@@ -159,7 +159,7 @@ loop_
  bq 'Hu (2014) to be published'
  br 'Czervinska, Madura, Zachara (2016) Acta Cryst. B72, 241-248'
  bs 'Gagne, Hawthorne (2015) Acta Cryst. B71, 561-578'
- ml 'M.W. Lufaso Private Communication'
+
 loop_
    _valence_param_atom_1
    _valence_param_atom_1_valence
@@ -185,7 +185,7 @@ Ag 1   F  -1    1.80     0.37     b   ?
 Ag 1   Cl -1    2.09     0.37     b   ?
 Ag 2   F  -1    1.79     0.37     e   unchecked
 Ag 3   F  -1    1.83     0.37     e   unchecked
-Ag 1   Br -1    2.22     0.37     b   ?  ml changed to Ag+1
+Ag 9   Br -1    2.22     0.37     b   ?  
 Ag 9   I  -1    2.38     0.37     b   ?
 Ag 9   Se -2    2.26     0.37     b   ? 
 Ag 9   Te -2    2.51     0.37     b   ?
@@ -311,9 +311,9 @@ Be 2   N  -3    1.50     0.37     b   ?
 Be 2   P  -3    1.95     0.37     b   ?
 Be 2   As -3    2.00     0.37     b   ?
 Be 2   H  -1    1.11     0.37     b   ?
-Bi 3   O  -2    2.094    0.37     a   ? (ml moved to first Bi3-O entry)
 Bi 3   O  -2    1.990    0.48     bj  ?
 Bi 3   O  -2    2.068    0.389    bs  ?
+Bi 3   O  -2    2.094    0.37     a   ? 
 Bi 3   S  -2    2.570    0.37     a   ? 
 Bi 3   Se -2    2.70     0.35     e   unchecked 
 Bi 3   F  -1    1.99     0.37     b   ?
@@ -535,7 +535,6 @@ Cr 6   O  -2    1.794    0.37     a   ?
 Cr 6   O  -2    1.709    0.375    bs  ?   
 Cr 6   F  -1    1.74     0.37     b   ? 
 Cr 6   Cl -1    2.12     0.37     b   ?
-Cr 8   O  -2    1.789    0.37     ml  ?Postulated by Lufaso for Cr 3.75
 Cr 9   O  -2    1.79     0.34     o   ?
 Cr 9   O  -2    1.724    0.37     w   'from transition metal complexes'
 Cr 9   Br -1    2.26     0.37     b   ?
@@ -628,8 +627,8 @@ Cu 3   N  -3    1.768    0.37     l   'from transition metal complexes'
 Cu 3   N  -3    1.753    0.37     t   ?
 Cu 3   C  -4    1.84     0.37     l   'from transition metal complexes'
 Dy 2   O  -2    1.90     0.37     e   unchecked
-Dy 3   O  -2    2.002    0.389    bs  ?
 Dy 3   O  -2    2.001    0.37     a   ?
+Dy 3   O  -2    2.002    0.389    bs  ?
 Dy 3   O  -2    2.005    0.37     ae  'from transition metal complexes'
 Dy 3   F  -1    1.922    0.37     b   ?
 Dy 3   F  -1    1.89     0.40     p   ?
@@ -651,9 +650,9 @@ Dy 9   As -3    2.64     0.37     b   ?
 Dy 9   H  -1    1.89     0.37     b   ?
 Er 2   O  -2    1.88     0.37     e   unchecked
 Er 2   S  -2    2.52     0.37     e   unchecked
-Er 3   O  -2    2.010    0.37     b   ?
 Er 3   O  -2    1.988    0.37     a   ?
 Er 3   O  -2    1.991    0.373    bs  ?
+Er 3   O  -2    2.010    0.37     b   ?
 Er 3   O  -2    1.979    0.37     ae  'from transition metal complexes'
 Er 3   S  -2    2.475    0.37     al  ?
 Er 3   Se -2    2.58     0.37     e   unchecked
@@ -734,10 +733,8 @@ Fe 3   N  -3    1.82     0.37     bq  'high spin'
 Fe 3   N  -3    1.70     0.37     bq  'low spin'
 Fe 3   N  -3    1.815    0.37     j   'from transition metal complexes'
 Fe 3   C   2    1.689    0.37     a   ?
-Fe 4   O  -2    1.776    0.37     ml  unchecked
 Fe 4   S  -2    2.23     0.35     e   unchecked
 Fe 6   O  -2    1.76     0.35     e   unchecked
-Fe 8   O  -2    1.774    0.37     ml  ?Postulated by Lufaso for Fe 3.75
 Fe 9   O  -2    1.795    0.30     ag  'for all oxidation states'
 Fe 9   O  -2    1.74     0.38     o   ?
 Fe 9   Br -1    2.26     0.37     b   ?
@@ -769,8 +766,8 @@ Ga 9   As -3    2.34     0.37     b   ?
 Ga 9   H  -1    1.51     0.37     b   ?
 Gd 2   O  -2    2.01     0.37     e   unchecked
 Gd 2   F  -1    2.40     0.37     e   unchecked
-Gd 3   O  -2    1.988    0.433    bs  ?
 Gd 3   O  -2    2.065    0.37     b   ?
+Gd 3   O  -2    1.988    0.433    bs  ?
 Gd 3   O  -2    2.031    0.37     ae  'from transition metal complexes'
 Gd 3   S  -2    2.53     0.37     e   unchecked
 Gd 3   F  -1    1.95     0.37     b   ?
@@ -861,8 +858,8 @@ Hg 9   P  -3    2.42     0.37     b   ?
 Hg 9   As -3    2.50     0.37     b   ? 
 Hg 9   H  -1    1.71     0.37     b   ?
 Hg 2   Hg  2    2.51     0.35     f   ?
-Ho 3   O  -2    1.993    0.387    bs  ?
 Ho 3   O  -2    2.025    0.37     a   ?
+Ho 3   O  -2    1.993    0.387    bs  ?
 Ho 3   O  -2    1.992    0.37     ae  'from transition metal complexes'
 Ho 3   S  -2    2.49     0.37     e   unchecked 
 Ho 3   F  -1    1.908    0.37     b   ?
@@ -888,7 +885,7 @@ I  1   Cl -1    2.47     0.37     e   unchecked
 I  3   O  -2    2.02     0.37     e   unchecked
 I  3   F  -1    1.90     0.37     b   ?
 I  3   Cl -1    2.39     0.37     e   unchecked
-I_  5   O  -2    1.990    0.44     bd  ?
+I  5   O  -2    1.990    0.44     bd  ?
 I  5   O  -2    1.992    0.474    bs  ?
 I  5   O  -2    1.80     1.00     e   ?   
 I  5   O  -2    2.003    0.37     a   ?   
@@ -899,7 +896,6 @@ I  7   O  -2    1.93     0.37     b   ?
 I  7   F  -1    1.83     0.37     b   ?
 I  7   Cl -1    2.31     0.37     b   ?
 In 1   Cl -1    2.56     0.37     e   unchecked
-In 2   O  -2    1.700    0.37     ml   Lufaso
 In 3   O  -2    1.902    0.37     a   ?
 In 3   O  -2    1.823    0.459    bs  ?
 In 3   S  -2    2.370    0.37     a   ? 
@@ -926,7 +922,6 @@ Ir 5   O  -2    1.909    0.449    bs  ?
 Ir 5   O  -2    2.01     0.37     e   unchecked 
 Ir 5   F  -1    1.82     0.37     b   ?
 Ir 5   Cl -1    2.30     0.37     b   ? 
-Ir 6   O  -2    1.908    0.37     ml  M. Lufaso 
 Ir 9   S  -2    2.38     0.37     b   ? 
 Ir 9   Se -2    2.51     0.37     b   ? 
 Ir 9   Te -2    2.71     0.37     b   ?
@@ -936,32 +931,32 @@ Ir 9   N  -3    2.06     0.37     b   ?
 Ir 9   P  -3    2.46     0.37     b   ?
 Ir 9   As -3    2.54     0.37     b   ?
 Ir 9   H  -1    1.76     0.37     b   ?
-K_ 1   O  -2    2.132    0.37     a   ?
-K_ 1   O  -2    2.047    0.398    bs  ?
-K_ 1   O  -2    2.113    0.37     u   ?
-K_ 1   O  -2    1.9548   0.430    c   '6 A cut-off'
-K_ 1   O  -2    1.84     0.48     o   ?
-K_ 1   S  -2    2.59     0.37     b   ?
-K_ 1   S  -2    2.1516   0.580    c   '7 A cut-off'
-K_ 1   S  -2    2.63     0.37     e   unchecked 
-K_ 1   Se -2    2.72     0.37     b   ?
-K_ 1   Se -2    2.2811   0.612    c   '7 A cut-off'
-K_ 1   Te -2    2.93     0.37     b   ?
-K_ 1   Te -2    2.4102   0.653    c   '7 A cut-off'
-K_ 1   F  -1    1.992    0.37     a   ? 
-K_ 1   F  -1    1.8307   0.429    c   '6 A cut-off'
-K_ 1   Cl -1    2.519    0.37     a   ?
-K_ 1   Cl -1    2.0707   0.559    c   '6 A cut-off'
-K_ 1   Br -1    2.66     0.37     b   ?
-K_ 1   Br -1    2.1529   0.603    c   '7 A cut-off'
-K_ 1   I  -1    2.88     0.37     b   ?
-K_ 1   I  -1    2.2821   0.658    c   '7 A cut-off'
-K_ 1   I  -1    2.92     0.37     e   unchecked
-K_ 1   N  -3    2.26     0.37     b   ?
-K_ 1   N  -3    2.30     0.37     e   unchecked
-K_ 1   P  -3    2.64     0.37     b   ?
-K_ 1   As -3    2.83     0.37     b   ?
-K_ 1   H  -1    2.10     0.37     b   ?
+K  1   O  -2    2.132    0.37     a   ?
+K  1   O  -2    2.047    0.398    bs  ?
+K  1   O  -2    2.113    0.37     u   ?
+K  1   O  -2    1.9548   0.430    c   '6 A cut-off'
+K  1   O  -2    1.84     0.48     o   ?
+K  1   S  -2    2.59     0.37     b   ?
+K  1   S  -2    2.1516   0.580    c   '7 A cut-off'
+K  1   S  -2    2.63     0.37     e   unchecked 
+K  1   Se -2    2.72     0.37     b   ?
+K  1   Se -2    2.2811   0.612    c   '7 A cut-off'
+K  1   Te -2    2.93     0.37     b   ?
+K  1   Te -2    2.4102   0.653    c   '7 A cut-off'
+K  1   F  -1    1.992    0.37     a   ? 
+K  1   F  -1    1.8307   0.429    c   '6 A cut-off'
+K  1   Cl -1    2.519    0.37     a   ?
+K  1   Cl -1    2.0707   0.559    c   '6 A cut-off'
+K  1   Br -1    2.66     0.37     b   ?
+K  1   Br -1    2.1529   0.603    c   '7 A cut-off'
+K  1   I  -1    2.88     0.37     b   ?
+K  1   I  -1    2.2821   0.658    c   '7 A cut-off'
+K  1   I  -1    2.92     0.37     e   unchecked
+K  1   N  -3    2.26     0.37     b   ?
+K  1   N  -3    2.30     0.37     e   unchecked
+K  1   P  -3    2.64     0.37     b   ?
+K  1   As -3    2.83     0.37     b   ?
+K  1   H  -1    2.10     0.37     b   ?
 Kr 2   F  -1    1.88     0.37     e   ?
 La 3   O  -2    2.086    0.45     bj  ?
 La 3   O  -2    2.179    0.359    bs  ?
@@ -1028,7 +1023,6 @@ Lu 3   N  -3    2.11     0.37     b   ?
 Lu 3   P  -3    2.51     0.37     b   ?
 Lu 3   As -3    2.59     0.37     b   ?
 Lu 3   H  -1    1.82     0.37     b   ?
-Ma 1   I  -1    3.50     0.37     ml  ? testing 2/4/2017 methylammonium
 Mg 2   O  -2    1.693    0.37     a   ? 
 Mg 2   O  -2    1.608    0.443    bs  ? 
 Mg 2   O  -2    1.636    0.42     o   ? 
@@ -1290,33 +1284,33 @@ Os 6   F  -1    1.80     0.35     e   unchecked
 Os 7   O  -2    1.937    0.349    bs  ?
 Os 8   O  -2    1.966    0.405    bs  ?
 Os 8   O  -2    1.92     0.37     e   unchecked
-P_ 3   O  -2    1.655    0.399    bs  ?
-P_ 3   O  -2    1.63     0.37     e   unchecked
-P_ 3   S  -2    2.12     0.37     e   unchecked
-P_ 3   Se -2    2.24     0.37     e   unchecked        
-P_ 3   F  -1    1.53     0.35     e   unchecked
-P_ 4   O  -2    1.64     0.37     e   unchecked
-P_ 4   S  -2    2.13     0.35     e   unchecked             
-P_ 4   F  -1    1.66     0.37     e   unchecked
-P_ 5   O  -2    1.617    0.37     a   ?
-P_ 5   O  -2    1.624    0.399    bs  ?
-P_ 5   O  -2    1.615    0.37     au  ?
-P_ 5   O  -2    1.604    0.37     b   ?
-P_ 5   S  -2    2.145    0.37     a   ?
-P_ 5   F  -1    1.54     0.37     e   unchecked
-P_ 5   Cl -1    2.02     0.37     e   ?
-P_ 5   Br -1    2.17     0.40     e   unchecked 
-P_ 5   N  -3    1.704    0.37     a   ?
-P_ 9   Br -1    2.15     0.37     b   ?
-P_ 9   I  -1    2.40     0.37     b   ? 
-P_ 9   S  -2    2.11     0.37     b   ?
-P_ 9   Se -2    2.26     0.37     b   ?
-P_ 9   Te -2    2.44     0.37     b   ?
-P_ 9   N  -3    1.73     0.37     b   ?
-P_ 9   P  -3    2.19     0.37     b   ?
-P_ 9   As -3    2.25     0.37     b   ?
-P_ 9   H  -1    1.41     0.37     b   ?
-P_ 5   P   5    2.22     0.35     e   unchecked
+P  3   O  -2    1.655    0.399    bs  ?
+P  3   O  -2    1.63     0.37     e   unchecked
+P  3   S  -2    2.12     0.37     e   unchecked
+P  3   Se -2    2.24     0.37     e   unchecked        
+P  3   F  -1    1.53     0.35     e   unchecked
+P  4   O  -2    1.64     0.37     e   unchecked
+P  4   S  -2    2.13     0.35     e   unchecked             
+P  4   F  -1    1.66     0.37     e   unchecked
+P  5   O  -2    1.617    0.37     a   ?
+P  5   O  -2    1.624    0.399    bs  ?
+P  5   O  -2    1.615    0.37     au  ?
+P  5   O  -2    1.604    0.37     b   ?
+P  5   S  -2    2.145    0.37     a   ?
+P  5   F  -1    1.54     0.37     e   unchecked
+P  5   Cl -1    2.02     0.37     e   ?
+P  5   Br -1    2.17     0.40     e   unchecked 
+P  5   N  -3    1.704    0.37     a   ?
+P  9   Br -1    2.15     0.37     b   ?
+P  9   I  -1    2.40     0.37     b   ? 
+P  9   S  -2    2.11     0.37     b   ?
+P  9   Se -2    2.26     0.37     b   ?
+P  9   Te -2    2.44     0.37     b   ?
+P  9   N  -3    1.73     0.37     b   ?
+P  9   P  -3    2.19     0.37     b   ?
+P  9   As -3    2.25     0.37     b   ?
+P  9   H  -1    1.41     0.37     b   ?
+P  5   P   5    2.22     0.35     e   unchecked
 Pa 4   O  -2    2.15     0.35     p   ?
 Pa 4   F  -1    2.02     0.40     p   ?
 Pa 4   Cl -1    2.49     0.40     p   ?
@@ -1339,7 +1333,6 @@ Pb 2   Cl -1    2.53     0.37     b   ?
 Pb 2   Cl -1    2.447    0.40     aq  'R0 from gas phase, small sample'
 Pb 2   Br -1    2.598    0.40     aq  'R0 from gas phase, small sample'
 Pb 2   Br -1    2.68     0.37     e   unchecked
-Pb 2   I  -1    2.75     0.37     ml  Lufaso testing 2/20/17 MAPbI3
 Pb 2   I  -1    2.83     0.37     e   unchecked
 Pb 2   I  -1    2.804    0.386    aq  'R0 from gas phase, small sample'
 Pb 2   N  -3    2.18     0.40     e   unchecked
@@ -1406,7 +1399,6 @@ Pr 3   N  -3    2.30     0.37     b   ?
 Pr 3   P  -3    2.68     0.37     b   ?
 Pr 3   As -3    2.75     0.37     b   ?
 Pr 3   H  -1    2.02     0.37     b   ?
-Pr 4   O  -2    2.077    0.37     ml  Lufaso
 Pt 2   O  -2    1.768    0.37     b   ?
 Pt 2   O  -2    1.742    0.375    bs  'small sample'
 Pt 2   O  -2    1.80     0.37     e   unchecked
@@ -1485,12 +1477,10 @@ Re 3   Cl -1    2.23     0.37     e   unchecked
 Re 4   F  -1    1.81     0.37     e   unchecked
 Re 4   Cl -1    2.23     0.37     e   unchecked
 Re 4   Br -1    2.35     0.37     e   unchecked
-Re 4   O  -2    1.877    0.37     ml  postulated by Lufaso based on Li2ReO3 
 Re 5   O  -2    1.834    0.557    bs  'small sample'  
 Re 5   O  -2    1.86     0.37     e   ?  
 Re 5   Cl -1    2.24     0.37     e   unchecked
 Re 6   F  -1    1.79     0.37     e   unchecked
-Re 6   O  -2    1.949    0.37     ml  postulated by Lufaso based on Sr2MnReO6 
 Re 7   O  -2    1.943    0.406    bs  ?
 Re 7   O  -2    1.97     0.37     e   unchecked
 Re 7   F  -1    1.86     0.37     b   ?  
@@ -1706,7 +1696,6 @@ Sn 2   N  -3    2.046    0.37     bn  'in metal organic complexes'
 Sn 2   P  -3    2.488    0.37     bn  'in metal organic complexes'
 Sn 2   As -3    2.585    0.37     bn  'in metal organic complexes'
 Sn 2   C  -4    2.077    0.37     bn  'in metal organic complexes'
-Sn 3   O  -2    1.945    0.37     ml  Postulated by Lufaso
 Sn 4   O  -2    1.905    0.37     a   ?
 Sn 4   O  -2    1.946    0.274    bs  ?
 Sn 4   S  -2    2.399    0.37     a   ?
@@ -1911,142 +1900,140 @@ Tm 3   N  -3    2.14     0.37     b   ?
 Tm 3   P  -3    2.53     0.37     b   ?
 Tm 3   As -3    2.62     0.37     b   ?
 Tm 3   H  -1    1.85     0.37     b   ?
-U_ 2   O  -2    2.08     0.37     e   unchecked
-U_ 3   S  -2    2.54     0.37     e   unchecked
-U_ 3   F  -1    2.02     0.40     p   ?
-U_ 3   F  -1    2.09     0.37     e   unchecked
-U_ 3   Cl -1    2.49     0.40     p   ?
-U_ 3   Br -1    2.64     0.40     p   ?
-U_ 3   I  -1    2.87     0.40     p   ?
-U_ 4   O  -2    2.112    0.37     b   ?
-U_ 4   O  -2    2.100    0.373    bs  ?
-U_ 4   O  -2    2.13     0.35     p   ?
-U_ 4   S  -2    2.55     0.37     e   unchecked
-U_ 4   F  -1    2.038    0.37     a   ?
-U_ 4   F  -1    2.034    0.37     b   ?
-U_ 4   F  -1    2.00     0.40     p   ?
-U_ 4   Cl -1    2.47     0.40     p   ?
-U_ 4   Br -1    2.60     0.40     p   ?
-U_ 4   Br -1    2.61     0.37     e   unchecked
-U_ 4   I  -1    2.88     0.37     e   unchecked
-U_ 4   N  -3    2.18     0.37     e   unchecked
-U_ 5   O  -2    2.075    0.37     b   ?
-U_ 5   O  -2    2.009    0.660    bs  'small sample'
-U_ 5   O  -2    2.10     0.35     p   ?
-U_ 5   F  -1    1.966    0.37     b   ? 
-U_ 5   F  -1    1.99     0.40     p   ? 
-U_ 5   Cl -1    2.46     0.37     b   ?
-U_ 5   Cl -1    2.43     0.40     p   ?
-U_ 5   Br -1    2.7      0.35     e   unchecked
-U_ 6   O  -2    2.051    0.519    r   ?
-U_ 6   O  -2    2.046    0.473    bs  ?
-U_ 6   O  -2    2.045    0.519    bo  ?
-U_ 6   O  -2    2.075    0.37     a   ?
-U_ 6   O  -2    2.08     0.35     p   ?
-U_ 6   F  -1    1.98     0.40     p   ?
-U_ 6   Cl -1    2.42     0.40     p   ?     
-U_ 6   N  -3    1.93     0.35     e   unchecked
-U_ 9   Br -1    2.63     0.37     b   ?
-U_ 9   I  -1    2.84     0.37     b   ?
-U_ 9   S  -2    2.56     0.37     b   ?
-U_ 9   Se -2    2.70     0.37     b   ?
-U_ 9   Te -2    2.86     0.37     b   ?
-U_ 9   N  -3    2.24     0.37     b   ?
-U_ 9   P  -3    2.64     0.37     b   ?
-U_ 9   As -3    2.72     0.37     b   ?
-U_ 9   H  -1    1.97     0.37     b   ?
-V_ 1   O  -2    1.88     0.37     e   unchecked                
-V_ 1   Cl -1    2.00     0.35     e   unchecked
-V_ 2   O  -2    1.70     0.37     e   unchecked
-V_ 2   S  -2    2.11     0.37     e   unchecked
-V_ 2   F  -1    2.16     0.37     e   unchecked
-V_ 2   Cl -1    2.44     0.37     e   unchecked
-V_ 3   O  -2    1.743    0.37     a   ?
-V_ 3   O  -2    1.718    0.412    bs  ?
-V_ 3   O  -2    1.749    0.37     j   'from transition metal complexes'
-V_ 3   S  -2    2.17     0.37     e   unchecked
-V_ 3   S  -2    2.185    0.37     j   ?
-V_ 3   F  -1    1.702    0.37     b   ? 
-V_ 3   Cl -1    2.19     0.37     b   ?
-V_ 3   Br -1    2.33     0.35     e   unchecked
-V_ 3   N  -3    1.813    0.37     j   'from transition metal complexes'
-V_ 3   N  -3    1.84     0.35     e   unchecked
-V_ 4   O  -2    1.784    0.37     a   ?
-V_ 4   O  -2    1.776    0.364    bs  ?
-V_ 4   O  -2    1.780    0.37     j   'from transition metal complexes'
-V_ 4   O  -2    1.735    0.37     j   'vanadyl bond only'
-V_ 4   S  -2    2.226    0.37     j   'from transition metal complexes'
-V_ 4   S  -2    2.181    0.37     j   'vanadyl bond only'
-V_ 4   S  -2    2.24     0.37     e   unchecked
-V_ 4   F  -1    1.70     0.37     b   ?
-V_ 4   Cl -1    2.16     0.37     b   ?
-V_ 4   N  -3    1.875    0.37     j   'from transition metal complexes'
-V_ 5   O  -2    1.803    0.37     a   ?
-V_ 5   O  -2    1.799    0.388    bs  ?
-V_ 5   O  -2    1.799    0.37     x   ?
-V_ 5   S  -2    2.25     0.37     e   unchecked
-V_ 5   F  -1    1.70     0.37     e   unchecked
-V_ 5   Cl -1    2.16     0.37     b   ?
-V_ 8   O  -2    1.774    0.37     ml  ?Postulated by Lufaso for V 3.75
-V_ 9   O  -2    1.788    0.32     ag  'all oxidation states'
-V_ 9   O  -2    1.81     0.34     o   ?
-V_ 9   Br -1    2.30     0.37     b   ? 
-V_ 9   I  -1    2.51     0.37     b   ? 
-V_ 9   S  -2    2.23     0.37     b   ?
-V_ 9   Se -2    2.33     0.37     b   ?
-V_ 9   Te -2    2.57     0.37     b   ?
-V_ 9   N  -3    1.86     0.37     b   ?
-V_ 9   P  -3    2.31     0.37     b   ?
-V_ 9   As -3    2.39     0.37     b   ?
-V_ 9   H  -1    1.58     0.37     b   ?
-W_ 3   O  -2    1.84     0.37     ml  Postulated by Lufaso
-W_ 4   O  -2    1.851    0.37     aj  ?
-W_ 5   O  -2    1.881    0.37     aj  ?
-W_ 5   O  -2    1.848    0.553    bs  'small sample'
-W_ 6   O  -2    1.917    0.37     a   ?
-W_ 6   O  -2    1.909    0.339    bs  ?
-W_ 6   O  -2    1.916    0.41     x   ?
-W_ 6   O  -2    1.921    0.37     b   ?
-W_ 6   O  -2    1.906    0.37     aj  ?
-W_ 6   F  -1    1.83     0.37     b   ? 
-W_ 6   Cl -1    2.27     0.37     b   ?
-W_ 9   O  -2    1.896    0.28     aj  'fitted to all oxidation states'
-W_ 9   Br -1    2.45     0.37     b   ? 
-W_ 9   I  -1    2.66     0.37     b   ?
-W_ 9   S  -2    2.39     0.37     b   ?
-W_ 9   Se -2    2.51     0.37     b   ? 
-W_ 9   Te -2    2.71     0.37     b   ?
-W_ 9   N  -3    2.06     0.37     b   ?
-W_ 9   P  -3    2.46     0.37     b   ?
-W_ 9   As -3    2.54     0.37     b   ?
-W_ 9   H  -1    1.76     0.37     b   ?
+U  2   O  -2    2.08     0.37     e   unchecked
+U  3   S  -2    2.54     0.37     e   unchecked
+U  3   F  -1    2.02     0.40     p   ?
+U  3   F  -1    2.09     0.37     e   unchecked
+U  3   Cl -1    2.49     0.40     p   ?
+U  3   Br -1    2.64     0.40     p   ?
+U  3   I  -1    2.87     0.40     p   ?
+U  4   O  -2    2.112    0.37     b   ?
+U  4   O  -2    2.100    0.373    bs  ?
+U  4   O  -2    2.13     0.35     p   ?
+U  4   S  -2    2.55     0.37     e   unchecked
+U  4   F  -1    2.038    0.37     a   ?
+U  4   F  -1    2.034    0.37     b   ?
+U  4   F  -1    2.00     0.40     p   ?
+U  4   Cl -1    2.47     0.40     p   ?
+U  4   Br -1    2.60     0.40     p   ?
+U  4   Br -1    2.61     0.37     e   unchecked
+U  4   I  -1    2.88     0.37     e   unchecked
+U  4   N  -3    2.18     0.37     e   unchecked
+U  5   O  -2    2.075    0.37     b   ?
+U  5   O  -2    2.009    0.660    bs  'small sample'
+U  5   O  -2    2.10     0.35     p   ?
+U  5   F  -1    1.966    0.37     b   ? 
+U  5   F  -1    1.99     0.40     p   ? 
+U  5   Cl -1    2.46     0.37     b   ?
+U  5   Cl -1    2.43     0.40     p   ?
+U  5   Br -1    2.7      0.35     e   unchecked
+U  6   O  -2    2.051    0.519    r   ?
+U  6   O  -2    2.046    0.473    bs  ?
+U  6   O  -2    2.045    0.519    bo  ?
+U  6   O  -2    2.075    0.37     a   ?
+U  6   O  -2    2.08     0.35     p   ?
+U  6   F  -1    1.98     0.40     p   ?
+U  6   Cl -1    2.42     0.40     p   ?     
+U  6   N  -3    1.93     0.35     e   unchecked
+U  9   Br -1    2.63     0.37     b   ?
+U  9   I  -1    2.84     0.37     b   ?
+U  9   S  -2    2.56     0.37     b   ?
+U  9   Se -2    2.70     0.37     b   ?
+U  9   Te -2    2.86     0.37     b   ?
+U  9   N  -3    2.24     0.37     b   ?
+U  9   P  -3    2.64     0.37     b   ?
+U  9   As -3    2.72     0.37     b   ?
+U  9   H  -1    1.97     0.37     b   ?
+V  1   O  -2    1.88     0.37     e   unchecked                
+V  1   Cl -1    2.00     0.35     e   unchecked
+V  2   O  -2    1.70     0.37     e   unchecked
+V  2   S  -2    2.11     0.37     e   unchecked
+V  2   F  -1    2.16     0.37     e   unchecked
+V  2   Cl -1    2.44     0.37     e   unchecked
+V  3   O  -2    1.743    0.37     a   ?
+V  3   O  -2    1.718    0.412    bs  ?
+V  3   O  -2    1.749    0.37     j   'from transition metal complexes'
+V  3   S  -2    2.17     0.37     e   unchecked
+V  3   S  -2    2.185    0.37     j   ?
+V  3   F  -1    1.702    0.37     b   ? 
+V  3   Cl -1    2.19     0.37     b   ?
+V  3   Br -1    2.33     0.35     e   unchecked
+V  3   N  -3    1.813    0.37     j   'from transition metal complexes'
+V  3   N  -3    1.84     0.35     e   unchecked
+V  4   O  -2    1.784    0.37     a   ?
+V  4   O  -2    1.776    0.364    bs  ?
+V  4   O  -2    1.780    0.37     j   'from transition metal complexes'
+V  4   O  -2    1.735    0.37     j   'vanadyl bond only'
+V  4   S  -2    2.226    0.37     j   'from transition metal complexes'
+V  4   S  -2    2.181    0.37     j   'vanadyl bond only'
+V  4   S  -2    2.24     0.37     e   unchecked
+V  4   F  -1    1.70     0.37     b   ?
+V  4   Cl -1    2.16     0.37     b   ?
+V  4   N  -3    1.875    0.37     j   'from transition metal complexes'
+V  5   O  -2    1.803    0.37     a   ?
+V  5   O  -2    1.799    0.388    bs  ?
+V  5   O  -2    1.799    0.37     x   ?
+V  5   S  -2    2.25     0.37     e   unchecked
+V  5   F  -1    1.70     0.37     e   unchecked
+V  5   Cl -1    2.16     0.37     b   ?
+V  9   O  -2    1.788    0.32     ag  'all oxidation states'
+V  9   O  -2    1.81     0.34     o   ?
+V  9   Br -1    2.30     0.37     b   ? 
+V  9   I  -1    2.51     0.37     b   ? 
+V  9   S  -2    2.23     0.37     b   ?
+V  9   Se -2    2.33     0.37     b   ?
+V  9   Te -2    2.57     0.37     b   ?
+V  9   N  -3    1.86     0.37     b   ?
+V  9   P  -3    2.31     0.37     b   ?
+V  9   As -3    2.39     0.37     b   ?
+V  9   H  -1    1.58     0.37     b   ?
+W  4   O  -2    1.851    0.37     aj  ?
+W  5   O  -2    1.881    0.37     aj  ?
+W  5   O  -2    1.848    0.553    bs  'small sample'
+W  6   O  -2    1.917    0.37     a   ?
+W  6   O  -2    1.909    0.339    bs  ?
+W  6   O  -2    1.916    0.41     x   ?
+W  6   O  -2    1.921    0.37     b   ?
+W  6   O  -2    1.906    0.37     aj  ?
+W  6   F  -1    1.83     0.37     b   ? 
+W  6   Cl -1    2.27     0.37     b   ?
+W  9   O  -2    1.896    0.28     aj  'fitted to all oxidation states'
+W  9   Br -1    2.45     0.37     b   ? 
+W  9   I  -1    2.66     0.37     b   ?
+W  9   S  -2    2.39     0.37     b   ?
+W  9   Se -2    2.51     0.37     b   ? 
+W  9   Te -2    2.71     0.37     b   ?
+W  9   N  -3    2.06     0.37     b   ?
+W  9   P  -3    2.46     0.37     b   ?
+W  9   As -3    2.54     0.37     b   ?
+W  9   H  -1    1.76     0.37     b   ?
 Xe 2   O  -2    2.05     0.35     e   unchecked      
 Xe 2   F  -1    2.02     0.37     e   unchecked
 Xe 4   F  -1    1.93     0.37     e   unchecked
 Xe 6   O  -2    2.00     0.37     e   unchecked
 Xe 6   F  -1    1.89     0.37     e   unchecked
 Xe 8   O  -2    1.94     0.37     e   unchecked
-Y_ 3   O  -2    2.028    0.35     bj  ?
-Y_ 3   O  -2    1.978    0.407    bs  ?
-Y_ 3   O  -2    2.019    0.37     a   ?
-Y_ 3   O  -2    2.014    0.37     b   ?
-Y_ 3   S  -2    2.48     0.37     b   ?
-Y_ 3   Se -2    2.61     0.37     b   ?
-Y_ 3   Te -2    2.80     0.37     b   ?
-Y_ 3   F  -1    1.904    0.37     b   ?
-Y_ 3   F  -1    1.87     0.37     e   unchecked 
-Y_ 3   Cl -1    2.40     0.37     b   ?
-Y_ 3   Br -1    2.55     0.37     b   ? 
-Y_ 3   I  -1    2.77     0.37     b   ? 
-Y_ 3   N  -3    2.17     0.37     b   ?
-Y_ 3   P  -3    2.57     0.37     b   ?
-Y_ 3   As -3    2.64     0.37     b   ?
-Y_ 3   H  -1    1.86     0.37     b   ?
+Y  3   O  -2    2.028    0.35     bj  ?
+Y  3   O  -2    1.978    0.407    bs  ?
+Y  3   O  -2    2.019    0.37     a   ?
+Y  3   O  -2    2.014    0.37     b   ?
+Y  3   S  -2    2.48     0.37     b   ?
+Y  3   Se -2    2.61     0.37     b   ?
+Y  3   Te -2    2.80     0.37     b   ?
+Y  3   F  -1    1.904    0.37     b   ?
+Y  3   F  -1    1.87     0.37     e   unchecked 
+Y  3   Cl -1    2.40     0.37     b   ?
+Y  3   Br -1    2.55     0.37     b   ? 
+Y  3   I  -1    2.77     0.37     b   ? 
+Y  3   N  -3    2.17     0.37     b   ?
+Y  3   P  -3    2.57     0.37     b   ?
+Y  3   As -3    2.64     0.37     b   ?
+Y  3   H  -1    1.86     0.37     b   ?
 Yb 2   O  -2    1.989    0.37     al  ?
 Yb 2   N  -3    2.092    0.37     al  ?
-Yb 3   O  -2    1.985    0.37     b   ?
 Yb 3   O  -2    1.965    0.37     a   ?
 Yb 3   O  -2    1.969    0.373    bs  ?
+Yb 3   O  -2    1.985    0.37     b   ?
 Yb 3   O  -2    1.954    0.37     ae  'from transition metal complexes'
 Yb 3   S  -2    2.43     0.37     b   ? 
 Yb 3   Se -2    2.56     0.37     b   ?

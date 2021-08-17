@@ -12,7 +12,7 @@ import time
 
 class BVparams():
 
-    def __init__(self, bv_file_path='bvparm16.cif'):
+    def __init__(self, bv_file_path='bvparms/bvparm2020.cif'):
         ''' Inspired by matminer BVparams '''
         parent_location = Path(os.path.abspath(__file__)).parent.absolute()
         self.bvfile = os.path.join(parent_location, bv_file_path) # Check gii_minimization directory for bv_file_path
