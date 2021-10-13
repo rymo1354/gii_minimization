@@ -6,8 +6,8 @@ Minimize Global Instability Index (GII) of a structure using bond valence parame
 
 # Dependencies
 Python packages:
-- Numpy
-- Scipy
-- Pandas
-- Pymatgen
-- Matminer (for benchmarking)
+- Numpy >= v. 1.21.0
+- Scipy >= v. 1.6.3
+- Pandas >= v. 1.2.5
+- Pymatgen >= v. 2022.0.9
+- Matminer (for benchmarking) >= v. 0.7.3
