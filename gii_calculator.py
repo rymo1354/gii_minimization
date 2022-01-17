@@ -2,14 +2,12 @@
 # date - 1/17/2022
 
 import os
+import sys
 from pathlib import Path
 import pandas as pd
 import numpy as np
-from pymatgen.core.sites import PeriodicSite
 from pymatgen.analysis.local_env import CrystalNN
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from scipy.optimize import minimize
-import time
 
 class BVparams():
 

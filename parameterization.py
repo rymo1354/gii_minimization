@@ -1,11 +1,15 @@
 #@author: rymo1354
 # Date 1/17/2022
 
-from gii_minimization.gii_calculator import BVparams, GIICalculator
+from gii_calculator import GIICalculator
 from scipy.optimize import minimize, NonlinearConstraint
+from scipy.stats import pearsonr
+from copy import deepcopy
 import sys
+import copy
+import numpy as np
 
-class ParamOuterLoop():
+class GeneralBVParamOptimizationOuterLoop():
     def __init__(self, structures_energies, cations_anions, starting_params):
         ''' structures_energies: a dictionary object with reduced compositions as keys and the following format -
                 {composition: {'structures': [list of oxidation-state decorated pymatgen.core.structure.Structure objects
@@ -24,7 +28,7 @@ class ParamOuterLoop():
 
         self.structures_energies = structures_energies
         self.cations_anions = cations_anions
-        self.starting_params = starting_params
+        self.starting_params = deepcopy(starting_params)
 
         self.oxi_structures, self.energies, self.pairs = self.arrange_inputs()
         self.pairs_to_optimize = copy.deepcopy(self.pairs) ## Controls which pairs are optimized during each step
@@ -53,7 +57,7 @@ class ParamOuterLoop():
             pair_length = len(pair_energies)
             structures.append(pair_structures)
             energies.append(pair_energies)
-            lengths.append(lengths)
+            lengths.append(pair_length)
 
         zipped = zip(lengths, self.cations_anions, structures, energies)
         sort = sorted(zipped, key = lambda t: t[0])
@@ -87,7 +91,8 @@ class ParamOuterLoop():
 
         return use_dict
 
-    def parameter_optimization(self, lb=0.7, opt_tol=0.01, init_steps=3, max_steps=12, obj_func='gii_gs', parameterize='R0'):
+    def parameter_optimization(self, lb=0.7, opt_tol=0.01, init_steps=3, max_steps=12, obj_func='gii_gs', parameterize='R0', 
+                               options={'gtol': 1e-3, 'xtol': 1e-2, 'barrier_tol': 1e-2, 'disp': True, 'verbose': 0}):
         ''' lb (float): lower bound for pearson correlation constraint
             opt_tol (float): if parameters following optimization are within this tolerance, no longer optimized
             init_steps (int): opt_tol and parameter exclusion only applied after init_steps
@@ -95,7 +100,7 @@ class ParamOuterLoop():
             parameterize (str): which terms to parameterize; supports "R0", "B", or "both" '''
 
         step = 0
-        while len(self.pairs_to_optimize) > 0 or step < max_step: # still pairs left to optimize
+        while len(self.pairs_to_optimize) > 0 or step < max_steps: # still pairs left to optimize
             step += 1
             for pair in self.pairs_to_optimize:
                 print(pair, step)
@@ -108,7 +113,7 @@ class ParamOuterLoop():
 
                 gbvpo = GeneralBVParamOptimization(self.oxi_structures[opt_index],
                                                    self.energies[opt_index],
-                                                   starting_params, pair[0], pair[1], obj_func, lb, parameterize)
+                                                   starting_params, pair[0], pair[1], obj_func, lb, parameterize, options)
                 final_params = gbvpo.param_optimizer()
                 final_R0, final_B = final_params['R0'][param_index], final_params['B'][param_index]
                 print(final_R0, final_B)
@@ -126,7 +131,8 @@ class ParamOuterLoop():
 
 class GeneralBVParamOptimization():
 
-    def __init__(self, oxi_structures, energies, starting_params, cation, anion, obj_func='gii_gs', lb=0.7, parameterize='R0'):
+    def __init__(self, oxi_structures, energies, starting_params, cation, anion, obj_func='gii_gs', lb=0.7, parameterize='R0', 
+                 options={'gtol': 1e-3, 'xtol': 1e-2, 'barrier_tol': 1e-2, 'disp': True, 'verbose': 0}):
 
         self.oxi_structures = oxi_structures # Structures with oxidation states assigned, separated by composition
         self.energies = energies # Energies associated with structures, separated by composition
@@ -138,7 +144,7 @@ class GeneralBVParamOptimization():
         self.lb = lb # Pearson correlation lower bound- default is 0.7
         self.parameterize = parameterize
 
-        self.options = {'gtol': 1e-3, 'xtol': 1e-2, 'barrier_tol': 1e-2, 'disp': True, 'verbose': 0} # Trust-Constrained Options
+        self.options = options # Trust-Constrained Algorithm Options
         self.dct_ind = self.get_cation_anion_pair_index()
         self.ground_state_structures, self.ground_state_energies = self.get_gs_structures()
 
@@ -182,10 +188,10 @@ class GeneralBVParamOptimization():
     def get_params_dict(self, x0):
         new_dict = {}
 
-        new_dict['Cation'] = self.starting_params['Cation']
-        new_dict['Anion'] = self.starting_params['Anion']
-        new_dict['R0'] = self.starting_params['R0']
-        new_dict['B'] = self.starting_params['B']
+        new_dict['Cation'] = deepcopy(self.starting_params['Cation'])
+        new_dict['Anion'] = deepcopy(self.starting_params['Anion'])
+        new_dict['R0'] = deepcopy(self.starting_params['R0'])
+        new_dict['B'] = deepcopy(self.starting_params['B'])
 
         if self.parameterize == 'R0':
             new_dict['R0'][self.dct_ind] = x0[0] # only one parameter changing
@@ -224,7 +230,7 @@ class GeneralBVParamOptimization():
             if len(self.ground_state_energies) == 1:
                 weighting = [1]
             else:
-                rg = np.subtract(np.max(se), np.min(se)) # dHd over entire dataset
+                rg = np.subtract(np.max(self.ground_state_energies), np.min(self.ground_state_energies)) # dHd over entire dataset
                 weighting = np.divide(rg, np.add(self.ground_state_energies, rg))
             for ind in range(len(gs_structures)):
                 gs_gii = self.calculate_GII(gs_structures[ind], params_dict)
@@ -249,7 +255,7 @@ class GeneralBVParamOptimization():
         elif self.parameterize == 'B':
             x0 = [starting_B]
         elif self.parameterize == 'both':
-            x0 = [starting_R0, starting_B]
+            x0 = [starting_r0, starting_B]
         else:
             sys.exit(1)
         #print(x0)
