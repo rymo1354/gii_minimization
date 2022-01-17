@@ -1,3 +1,6 @@
+#@author: rymo1354
+# Date 1/17/2022
+
 from gii_minimization.gii_calculator import BVparams, GIICalculator
 from scipy.optimize import minimize, NonlinearConstraint
 import sys
