@@ -1,13 +1,8 @@
 #@author: rymo1354
 # Date 1/17/2022
 
-import os
-from pathlib import Path
-import pandas as pd
 import numpy as np
-from pymatgen.core.sites import PeriodicSite
-from pymatgen.analysis.local_env import CrystalNN
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from gii_calculator import GIICalculator
 from scipy.optimize import minimize
 import time
 
