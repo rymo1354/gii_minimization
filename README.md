@@ -17,7 +17,7 @@ Parameterize R0 and B parameters using Pymatgen structure objects and user-suppl
 # Dependencies
 Python packages:
 - Numpy >= v. 1.21.0
-- Scipy >= v. 1.6.3
+- Scipy >= v. 1.7.3
 - Pandas >= v. 1.2.5
 - Pymatgen >= v. 2022.0.9
 - Matminer (for benchmarking) >= v. 0.7.3
