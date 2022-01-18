@@ -12,7 +12,7 @@ Adjust single site positions to minimize the GII. Includes:
 # parameterization.py
 Parameterize R0 and B parameters using Pymatgen structure objects and user-supplied DFT energetics
 - GeneralBVParamOptimization: class which optimizes a single cation/anion bond valence parameters (R0 and B) based on the oxidation-state assigned structures provided
-- ParamOuterLoop: Manages the optimization of many different cation/anion bond valence parameters for a dataset of structures and DFT energies
+- GeneralBVParamOptimizationOuterLoop: Manages the optimization of many different cation/anion bond valence parameters for a dataset of structures and DFT energies
 
 # Dependencies
 Python packages:
