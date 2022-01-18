@@ -91,12 +91,12 @@ class GeneralBVParamOptimizationOuterLoop():
 
         return use_dict
 
-    def parameter_optimization(self, lb=0.7, opt_tol=0.01, init_steps=3, max_steps=12, obj_func='gii_gs', parameterize='R0', 
+    def parameter_optimization(self, obj_func='gii_gs', parameterize='R0', lb=0.7, opt_tol=0.01, init_steps=3, max_steps=12, 
                                options={'gtol': 1e-3, 'xtol': 1e-2, 'barrier_tol': 1e-2, 'disp': True, 'verbose': 0}):
         ''' lb (float): lower bound for pearson correlation constraint
             opt_tol (float): if parameters following optimization are within this tolerance, no longer optimized
             init_steps (int): opt_tol and parameter exclusion only applied after init_steps
-            obj_func (str): objective function to use; currently on "gii_gs" supported
+            obj_func (str): objective function to use; currently "gii_gs" and "di2_rmsd" supported
             parameterize (str): which terms to parameterize; supports "R0", "B", or "both" '''
 
         step = 0
@@ -160,6 +160,20 @@ class GeneralBVParamOptimization():
         calc_obj = GIICalculator(param_dict)
         GII = calc_obj.GII(structure)
         return GII
+
+    def calculate_di_squareds(self, structure, param_dict):
+        calc_obj = GIICalculator(param_dict)
+        specie_indices = []
+        for site_ind in range(len(structure)): # get indices with species to be optimized
+            if structure[site_ind].specie == self.cation:
+                specie_indices.append(site_ind)
+        di_squareds = []
+        for specie_ind in specie_indices:
+            neighbors = [a for a in calc_obj.get_neighbors(structure, specie_ind) if a.specie == self.anion]
+            di = calc_obj.di(structure[specie_ind], neighbors)
+            di_squared = calc_obj.di_squared(di)
+            di_squareds.append(di_squared)
+        return di_squareds
 
     def get_cation_anion_pair_index(self):
         cation_inds = [i for i in range(len(self.starting_params['Cation'])) if self.cation == self.starting_params['Cation'][i]]
@@ -237,11 +251,24 @@ class GeneralBVParamOptimization():
                 sum_gs_giis += np.multiply(weighting[ind], gs_gii)
         return sum_gs_giis
 
+    def get_sum_di_squared_rmsd(self, oxi_structures, params_dict):
+        # Get the standard deviation of all bond valence values here
+        all_di_squareds = []
+        for comp in oxi_structures:
+            for ind in range(len(comp)):
+                di_squareds = self.calculate_di_squareds(comp[ind], params_dict)
+                all_di_squareds += di_squareds
+        minimize = np.sqrt(np.divide(np.sum(all_di_squareds), len(all_di_squareds)))
+        print(minimize)
+        return minimize
+
     def optimize_func(self, x0):
         # x0 is the params in the following order: all R0s, followed by all Bs
         new_dict = self.get_params_dict(x0)
         if self.obj_function == 'gii_gs':
             func = self.get_sum_gs_giis(self.ground_state_structures, new_dict) # Minimize sum(GII_GS)
+        elif self.obj_function == 'di2_rmsd':
+            func = self.get_sum_di_squared_rmsd(self.oxi_structures, new_dict)
         else:
             sys.exit(1)
         return func
@@ -264,6 +291,8 @@ class GeneralBVParamOptimization():
             constraints = [NonlinearConstraint(self.pearson_constraint, self.lb, 1)] # This is used
             result = minimize(self.optimize_func, x0, method='trust-constr', options=self.options,
                                constraints=constraints)
+        elif self.obj_function == 'di2_rmsd':
+            result = minimize(self.optimize_func, x0, method='trust-constr', options=self.options)
         else:
             sys.exit(1)
 
