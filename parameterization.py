@@ -9,6 +9,63 @@ import sys
 import copy
 import numpy as np
 
+class CompositionSpecificBVParamOptimizationOuterLoop():
+    def __init__(self, structures_energies, compositions, starting_params):
+        ''' structures_energies: a dictionary object with reduced compositions as keys and the following format -
+                {composition: {'structures': [list of oxidation-state decorated pymatgen.core.structure.Structure objects
+                                             with the same reduced formulas, i.e. A2B4X6, ABX3, etc.],
+                               'energies': [list of float objects corresponding to each structure's DFT energy]}}
+
+            compositions: a list of cation-anion pairs (tuples) to parameterize; compositions can be
+                strings or pymatgen.core.composition.Composition objects
+
+            starting_params: a dictionary of starting parameters- uses same format as GIICalculator
+                             (dict) Dictionary of the form:
+                                 {'Cation' (PMG Specie Object): [],
+                                  'Anion' (PMG Specie Object)): [],
+                                  'R0' (Float): [],
+                                  'B' (Float): []} '''
+        self.structures_energies = structures_energies
+        self.compositions = compositions
+        self.starting_params = deepcopy(starting_params)
+
+        self.oxi_structures, self.energies = self.get_composition_structures()
+        self.updated_params_by_composition = {}
+
+    def get_composition_structures(self):
+        oxi_structures = []
+        energies = []
+        for composition in self.compositions:
+            oxi_structures.append(self.structures_energies[composition]['structures'])
+            energies.append(self.structures_energies[composition]['energies'])
+        return oxi_structures, energies
+
+    def get_composition_cations_anions(self, composition):
+        composition_index = self.compositions.index(composition)
+        structure_species = self.oxi_structures[composition_index][0].species # Get species from first entry
+        unique_cations = list(np.unique([s for s in structure_species if np.sign(s.oxi_state) == 1]))
+        unique_anions = list(np.unique([s for s in structure_species if np.sign(s.oxi_state) == -1]))
+        cations, anions = [], []
+        for uc in unique_cations:
+            for ua in unique_anions:
+                cations.append(uc)
+                anions.append(ua)
+        return cations, anions
+
+    def parameter_optimization(self, obj_func='gii_gs', parameterize='R0',
+                               options={'gtol': 1e-3, 'xtol': 1e-2, 'barrier_tol': 1e-2, 'disp': True, 'verbose': 0}):
+        for composition in self.compositions:
+            opt_index = self.compositions.index(composition)
+            cations, anions = self.get_composition_cations_anions(composition)
+            bvpo = BVParamOptimization([self.oxi_structures[opt_index]], [self.energies[opt_index]],
+                                               self.starting_params, cations, anions, obj_func=obj_func,
+                                               parameterize=parameterize, options=options)
+            bvpo.param_optimizer()
+            self.updated_params_by_composition[composition] = bvpo.final_dict
+        print('All parameters optimized')
+
+        return
+
 class GeneralBVParamOptimizationOuterLoop():
     def __init__(self, structures_energies, cations_anions, starting_params):
         ''' structures_energies: a dictionary object with reduced compositions as keys and the following format -
@@ -16,7 +73,7 @@ class GeneralBVParamOptimizationOuterLoop():
                                              with the same reduced formulas, i.e. A2B4X6, ABX3, etc.],
                                'energies': [list of float objects corresponding to each structure's DFT energy]}}
 
-            to_parameterize: a list of cation-anion pairs (tuples) to parameterize; cations and anions should be
+            cations_anions: a list of cation-anion pairs (tuples) to parameterize; cations and anions should be
                 pymatgen.core.composition.Specie objects
 
             starting_params: a dictionary of starting parameters- uses same format as GIICalculator
@@ -91,7 +148,7 @@ class GeneralBVParamOptimizationOuterLoop():
 
         return use_dict
 
-    def parameter_optimization(self, obj_func='gii_gs', parameterize='R0', lb=0.7, opt_tol=0.01, init_steps=3, max_steps=12, 
+    def parameter_optimization(self, obj_func='gii_gs', parameterize='R0', lb=0.7, opt_tol=0.01, init_steps=3, max_steps=12,
                                options={'gtol': 1e-3, 'xtol': 1e-2, 'barrier_tol': 1e-2, 'disp': True, 'verbose': 0}):
         ''' lb (float): lower bound for pearson correlation constraint
             opt_tol (float): if parameters following optimization are within this tolerance, no longer optimized
@@ -111,10 +168,10 @@ class GeneralBVParamOptimizationOuterLoop():
                 starting_R0, starting_B = starting_params['R0'][param_index], starting_params['B'][param_index]
                 print(starting_R0, starting_B)
 
-                gbvpo = GeneralBVParamOptimization(self.oxi_structures[opt_index],
+                bvpo = BVParamOptimization(self.oxi_structures[opt_index],
                                                    self.energies[opt_index],
-                                                   starting_params, pair[0], pair[1], obj_func, lb, parameterize, options)
-                final_params = gbvpo.param_optimizer()
+                                                   starting_params, [pair[0]], [pair[1]], obj_func, lb, parameterize, options)
+                final_params = bvpo.param_optimizer()
                 final_R0, final_B = final_params['R0'][param_index], final_params['B'][param_index]
                 print(final_R0, final_B)
                 R0_diff, B_diff = np.subtract(starting_R0, final_R0), np.subtract(starting_B, final_B)
@@ -129,23 +186,26 @@ class GeneralBVParamOptimizationOuterLoop():
 
         return
 
-class GeneralBVParamOptimization():
+class BVParamOptimization():
 
-    def __init__(self, oxi_structures, energies, starting_params, cation, anion, obj_func='gii_gs', lb=0.7, parameterize='R0', 
+    def __init__(self, oxi_structures, energies, starting_params, cations, anions, obj_func='gii_gs', lb=0.7, parameterize='R0',
                  options={'gtol': 1e-3, 'xtol': 1e-2, 'barrier_tol': 1e-2, 'disp': True, 'verbose': 0}):
 
         self.oxi_structures = oxi_structures # Structures with oxidation states assigned, separated by composition
         self.energies = energies # Energies associated with structures, separated by composition
         self.starting_params = starting_params # Dictionary of starting params, format same as BVParams
 
-        self.cation = cation # The pymatgen.core.composition.Specie cation for which to optimize R0
-        self.anion = anion # The pymatgen.core.composition.Specie anion for which to optimize R0
+        self.cations = cations # List of pymatgen.core.composition.Specie cations for which to optimize R0
+        self.anions = anions # List of pymatgen.core.composition.Specie anions for which to optimize R0; same length as cations
+        # Note: di2_rmsd only takes a single cation and anion as arguments, as this parameterization is independent of other params
+
         self.obj_function = obj_func # What to minimize- currently the ground state GII for each composition
         self.lb = lb # Pearson correlation lower bound- default is 0.7
         self.parameterize = parameterize
 
         self.options = options # Trust-Constrained Algorithm Options
-        self.dct_ind = self.get_cation_anion_pair_index()
+        self.dct_inds = [self.get_cation_anion_pair_index(self.cations[i], self.anions[i],
+                                                          self.starting_params) for i in range(len(self.cations))]
         self.ground_state_structures, self.ground_state_energies = self.get_gs_structures()
 
 
@@ -161,23 +221,24 @@ class GeneralBVParamOptimization():
         GII = calc_obj.GII(structure)
         return GII
 
-    def calculate_di_squareds(self, structure, param_dict):
+    def calculate_di_squareds(self, structure, cation, anion, param_dict):
+        # Will need to pass a cation and anion here
         calc_obj = GIICalculator(param_dict)
         specie_indices = []
         for site_ind in range(len(structure)): # get indices with species to be optimized
-            if structure[site_ind].specie == self.cation:
+            if structure[site_ind].specie == cation:
                 specie_indices.append(site_ind)
         di_squareds = []
         for specie_ind in specie_indices:
-            neighbors = [a for a in calc_obj.get_neighbors(structure, specie_ind) if a.specie == self.anion]
+            neighbors = [a for a in calc_obj.get_neighbors(structure, specie_ind) if a.specie == anion]
             di = calc_obj.di(structure[specie_ind], neighbors)
             di_squared = calc_obj.di_squared(di)
             di_squareds.append(di_squared)
         return di_squareds
 
-    def get_cation_anion_pair_index(self):
-        cation_inds = [i for i in range(len(self.starting_params['Cation'])) if self.cation == self.starting_params['Cation'][i]]
-        anion_inds = [i for i in range(len(self.starting_params['Anion'])) if self.anion == self.starting_params['Anion'][i]]
+    def get_cation_anion_pair_index(self, cation, anion, dct):
+        cation_inds = [i for i in range(len(self.starting_params['Cation'])) if cation == dct['Cation'][i]]
+        anion_inds = [i for i in range(len(self.starting_params['Anion'])) if anion == dct['Anion'][i]]
         ind = list(set(cation_inds) & set(anion_inds))[0]
 
         return ind
@@ -207,13 +268,14 @@ class GeneralBVParamOptimization():
         new_dict['R0'] = deepcopy(self.starting_params['R0'])
         new_dict['B'] = deepcopy(self.starting_params['B'])
 
-        if self.parameterize == 'R0':
-            new_dict['R0'][self.dct_ind] = x0[0] # only one parameter changing
-        elif self.parameterize == 'B':
-            new_dict['B'][self.dct_ind] = x0[0] # only one parameter changing
-        elif self.parameterize == 'both':
-            new_dict['R0'][self.dct_ind] = x0[0]
-            new_dict['B'][self.dct_ind] = x0[1] # both parameters changing
+        for i in range(len(self.dct_inds)):
+            if self.parameterize == 'R0':
+                new_dict['R0'][self.dct_inds[i]] = x0[i] # only one parameter changing
+            elif self.parameterize == 'B':
+                new_dict['B'][self.dct_inds[i]] = x0[i] # only one parameter changing
+            elif self.parameterize == 'both':
+                new_dict['R0'][self.dct_inds[i]] = x0[i]
+                new_dict['B'][self.dct_inds[i]] = x0[i + len(self.dct_inds)] # both parameters changing
 
         return new_dict
 
@@ -253,12 +315,13 @@ class GeneralBVParamOptimization():
 
     def get_sum_di_squared_rmsd(self, oxi_structures, params_dict):
         # Get the standard deviation of all bond valence values here
-        all_di_squareds = []
-        for comp in oxi_structures:
-            for ind in range(len(comp)):
-                di_squareds = self.calculate_di_squareds(comp[ind], params_dict)
-                all_di_squareds += di_squareds
-        minimize = np.sqrt(np.divide(np.sum(all_di_squareds), len(all_di_squareds)))
+        all_di_squareds = [[] for i in self.cations]
+        for i in range(len(self.cations)):
+            for comp in oxi_structures:
+                for ind in range(len(comp)):
+                    di_squareds = self.calculate_di_squareds(comp[ind], self.cations[i], self.anions[i], params_dict)
+                    all_di_squareds[i] += di_squareds
+        minimize = np.sum([np.sqrt(np.divide(np.sum(all_di_squareds[i]), len(all_di_squareds[i]))) for i in range(len(all_di_squareds))])
         print(minimize)
         return minimize
 
@@ -274,15 +337,15 @@ class GeneralBVParamOptimization():
         return func
 
     def param_optimizer(self):
-        starting_r0 = self.starting_params['R0'][self.dct_ind]
-        starting_B = self.starting_params['B'][self.dct_ind]
+        starting_R0s = [self.starting_params['R0'][i] for i in self.dct_inds]
+        starting_Bs = [self.starting_params['B'][i] for i in self.dct_inds]
 
         if self.parameterize == 'R0':
-            x0 = [starting_r0]
+            x0 = starting_R0s
         elif self.parameterize == 'B':
-            x0 = [starting_B]
+            x0 = starting_Bs
         elif self.parameterize == 'both':
-            x0 = [starting_r0, starting_B]
+            x0 = starting_R0s + starting_Bs
         else:
             sys.exit(1)
         #print(x0)
