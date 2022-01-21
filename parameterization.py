@@ -62,7 +62,7 @@ class CompositionSpecificBVParamOptimizationOuterLoop():
                                                parameterize=parameterize, options=options)
             bvpo.param_optimizer()
             self.updated_params_by_composition[composition] = bvpo.final_dict
-        print('All parameters optimized')
+        print('All parameters optimized using convergence criteria')
 
         return
 
@@ -76,7 +76,8 @@ class GeneralBVParamOptimizationOuterLoop():
             cations_anions: a list of cation-anion pairs (tuples) to parameterize; cations and anions should be
                 pymatgen.core.composition.Specie objects
 
-            starting_params: a dictionary of starting parameters- uses same format as GIICalculator
+            starting_params: a dictionary of starting parameters; MUST include all cation-anion pairs present in the dataset
+                             - uses same format as GIICalculator
                              (dict) Dictionary of the form:
                                  {'Cation' (PMG Specie Object): [],
                                   'Anion' (PMG Specie Object)): [],
@@ -86,10 +87,10 @@ class GeneralBVParamOptimizationOuterLoop():
         self.structures_energies = structures_energies
         self.cations_anions = cations_anions
         self.starting_params = deepcopy(starting_params)
+        self.updated_params = copy.deepcopy(self.starting_params)
 
         self.oxi_structures, self.energies, self.pairs = self.arrange_inputs()
         self.pairs_to_optimize = copy.deepcopy(self.pairs) ## Controls which pairs are optimized during each step
-        self.updated_params = copy.deepcopy(self.starting_params)
 
     def get_cation_anion_pair_index(self, cation, anion, dct):
         cation_inds = [i for i in range(len(dct['Cation'])) if cation == dct['Cation'][i]]
@@ -157,7 +158,7 @@ class GeneralBVParamOptimizationOuterLoop():
             parameterize (str): which terms to parameterize; supports "R0", "B", or "both" '''
 
         step = 0
-        while len(self.pairs_to_optimize) > 0 or step < max_steps: # still pairs left to optimize
+        while len(self.pairs_to_optimize) > 0 and step < max_steps: # still pairs left to optimize
             step += 1
             for pair in self.pairs_to_optimize:
                 print(pair, step)
@@ -182,7 +183,7 @@ class GeneralBVParamOptimizationOuterLoop():
 
                 if step >= init_steps and np.abs(R0_diff) <= opt_tol and np.abs(B_diff) <= opt_tol:
                     self.pairs_to_optimize.remove(pair)
-        print('Convergence Reached')
+        print('All parameters optimized using convergence criteria')
 
         return
 
