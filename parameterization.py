@@ -52,13 +52,13 @@ class CompositionSpecificBVParamOptimizationOuterLoop():
                 anions.append(ua)
         return cations, anions
 
-    def parameter_optimization(self, obj_func='gii_gs', parameterize='R0',
+    def parameter_optimization(self, obj_func='gii_gs', parameterize='R0', lb=0.7,
                                options={'gtol': 1e-3, 'xtol': 1e-2, 'barrier_tol': 1e-2, 'disp': True, 'verbose': 0}):
         for composition in self.compositions:
             opt_index = self.compositions.index(composition)
             cations, anions = self.get_composition_cations_anions(composition)
             bvpo = BVParamOptimization([self.oxi_structures[opt_index]], [self.energies[opt_index]],
-                                               self.starting_params, cations, anions, obj_func=obj_func,
+                                               self.starting_params, cations, anions, lb=lb, obj_func=obj_func,
                                                parameterize=parameterize, options=options)
             bvpo.param_optimizer()
             self.updated_params_by_composition[composition] = bvpo.final_dict
