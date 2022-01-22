@@ -1,11 +1,23 @@
 #@author: rymo1354
 # date - 1/20/2022
 
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+from analysis import correct_ordering, get_parameters
+from scipy.stats import iqr
+from gii_calculator import GIICalculator
+from tqdm import tqdm
+from scipy.stats import pearsonr
+#import collections
+from pymatgen.core.periodic_table import Element
+#from pymatgen.core.composition import Composition
+import sys
+import re
+import copy
 
-# Used to plot the dataset statistics distribution
-def plot_giis_pearsons(giis, pearsons, orderings, name):
+# Used to plot the dataset statistics distributions
+def plot_giis_pearsons(giis, pearsons, orderings, name=None):
 
     fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(6, 6), sharey=False, sharex=False, dpi=300)
     fig.tight_layout()
@@ -19,7 +31,7 @@ def plot_giis_pearsons(giis, pearsons, orderings, name):
     #axins1 = zoomed_inset_axes(ax1, 1.5, loc= 'lower left', bbox_to_anchor=(0,0), borderpad=3)
     ax1.set_xlim([0, 1])
     ax1.set_ylim([0, 115])
-    ax1.set_xlabel('$GII_{GS \: DFT} \\enspace (v.u.)$')
+    ax1.set_xlabel('$DFT \enspace Ground \enspace State \enspace GII, \enspace GII_{GS \: DFT} \enspace (v.u.)$')
     #ax1.set_ylabel('$Count$')
 
     ax2.hist(pearsons, bins=np.arange(-1.0, 1.1, 0.1), edgecolor='w', color='#ED1C24')
@@ -44,3 +56,293 @@ def plot_giis_pearsons(giis, pearsons, orderings, name):
     ax3.set_xlabel('$ Structures \enspace correctly \enspace ordered, \enspace N^{correct}$')
     #ax3.set_ylabel('$Count$')
     #plt.tight_layout()
+    if name != None:
+        fig.savefig(name, bbox_inches = "tight")
+    return
+
+# Used to plot the GII vs dHd relationship for a given cation-anion pair
+def plot_by_species(pair, structures_energies, param_dct, name=None):
+    matplotlib.rcParams.update({'font.size': 18})
+    colors = ['#01BAEF', '#8D5A97', '#ED1C24', '#1A1423', '#1EA896', '#214E34', '#EE6C4D', '#7B3E19']
+    use_cmpds = []
+    for cmpd in list(structures_energies.keys()):
+        cmpd_structure = structures_energies[cmpd]['structures'][0]
+        if pair[0] in cmpd_structure.species and pair[1] in cmpd_structure.species:
+            use_cmpds.append(cmpd)
+
+    fig, axs = plt.subplots(2, 4, figsize=(14, 7), sharey=True, sharex=True, dpi=500)
+    #all_opt_energies, all_opt_giis, all_colors = [], [], []
+    fig.tight_layout()
+    count_1 = 0
+    count_2 = 0
+    total_count = 0
+    for cmpd_ind, cmpd in enumerate(use_cmpds):
+        name_cmpd = copy.deepcopy(cmpd)
+        numbers = re.findall(r'\d+', cmpd)
+        for n in numbers:
+            name_cmpd = re.sub('\d', '_{%s}' % n, name_cmpd)
+        name_cmpd = '$' + name_cmpd + '$'
+        keys = list(param_dct.keys())
+        if total_count >= 8:
+            continue
+        if 'Cation' in keys and 'Anion' in keys: # General parameters
+            opt_params = param_dct
+        else:
+            opt_params = param_dct[cmpd]
+        opt_structures = structures_energies[cmpd]['structures']
+        opt_energies = structures_energies[cmpd]['energies']
+
+        cation_inds = [i for i in range(len(opt_params['Cation'])) if opt_params['Cation'][i] == pair[0]]
+        anion_inds = [i for i in range(len(opt_params['Anion'])) if opt_params['Anion'][i] == pair[1]]
+        opt_ind = list(set(cation_inds) & set(anion_inds))[0]
+        comp_R0 = np.round(opt_params['R0'][opt_ind], 3)
+        gii_calc = GIICalculator(opt_params)
+        opt_giis = [gii_calc.GII(s) for s in opt_structures]
+
+        rounded_giis = np.round(opt_giis, 3)
+        rounded_energies = np.round(opt_energies, 3)
+        zipped = zip(rounded_energies, rounded_giis)
+        sort = sorted(zipped, key = lambda t: t[1])
+        s_energies, s_giis = [sort[i][0] for i in range(len(sort))], [sort[i][1] for i in range(len(sort))]
+        co = correct_ordering(s_energies)
+
+        p = np.round(pearsonr(opt_energies, opt_giis)[0], 3)
+        print(cmpd, np.min(rounded_giis), p, co)
+        color = colors[cmpd_ind]
+        for i in range(len(rounded_energies)):
+            if rounded_energies[i] == np.min(rounded_energies):
+                axs[count_1][count_2].scatter(rounded_giis[i], rounded_energies[i], color=color, s=70,
+                                              facecolors='none', edgecolors=color, label=cmpd, linewidth=2)
+            else:
+                axs[count_1][count_2].scatter(rounded_giis[i], rounded_energies[i], color=color, s=100,
+                                              marker='o', label=cmpd, edgecolor='w')
+        m, b = np.polyfit(rounded_giis, rounded_energies, 1)
+        rg = np.linspace(np.min(rounded_giis), np.max(rounded_giis), 10)
+        axs[count_1][count_2].plot(rg, np.add(np.multiply(m, rg), b), '--', c=color, alpha=1)
+        axs[count_1][count_2].text(0.35, 0.85, '$R_{0} = %s \: \AA$' % format(comp_R0, '.3f'), ha='center', va='center',
+                                   transform=axs[count_1][count_2].transAxes)
+        axs[count_1][count_2].text(0.7, 0.1, '$p = %s$' % p, ha='center', va='center',
+                                   transform=axs[count_1][count_2].transAxes)
+        axs[count_1][count_2].set_title(name_cmpd)
+        if count_1 != 0:
+            axs[count_1][count_2].set_xlabel('$GII \\enspace (v.u.)$')
+        if count_2 == 0:
+            axs[count_1][count_2].set_ylabel('$\\Delta H^{DFT}_{d} \\enspace (eV/atom)$')
+        #axs[count_1][count_2].legend(loc='upper left')
+        count_2 += 1
+        if count_2 == 4:
+            count_1 += 1
+            count_2 = 0
+        total_count += 1
+    if name != None:
+        fig.savefig(name, bbox_inches = "tight")
+    return
+
+def periodic_table_heatmap(
+    elemental_data,
+    oxi_state_data,
+    cbar_label="",
+    cbar_label_size=18,
+    show_plot=False,
+    cmap="YlOrRd",
+    cmap_range=None,
+    blank_color="grey",
+    value_format=None,
+    max_row=9, name=None
+):
+    """
+    A static method that generates a heat map overlayed on a periodic table.
+    Args:
+         elemental_data (dict): A dictionary with the element as a key and a
+            value assigned to it, e.g. surface energy and frequency, etc.
+            Elements missing in the elemental_data will be grey by default
+            in the final table elemental_data={"Fe": 4.2, "O": 5.0}.
+         oxi_state_data (dict): oxi_state_data={"Fe": +3}
+         cbar_label (string): Label of the colorbar. Default is "".
+         cbar_label_size (float): Font size for the colorbar label. Default is 14.
+         cmap_range (tuple): Minimum and maximum value of the colormap scale.
+            If None, the colormap will autotmatically scale to the range of the
+            data.
+         show_plot (bool): Whether to show the heatmap. Default is False.
+         value_format (str): Formatting string to show values. If None, no value
+            is shown. Example: "%.4f" shows float to four decimals.
+         cmap (string): Color scheme of the heatmap. Default is 'YlOrRd'.
+            Refer to the matplotlib documentation for other options.
+         blank_color (string): Color assigned for the missing elements in
+            elemental_data. Default is "grey".
+         max_row (integer): Maximum number of rows of the periodic table to be
+            shown. Default is 9, which means the periodic table heat map covers
+            the first 9 rows of elements.
+    """
+
+    # Convert primitive_elemental data in the form of numpy array for plotting.
+    if cmap_range is not None:
+        max_val = cmap_range[1]
+        min_val = cmap_range[0]
+    else:
+        max_val = max(elemental_data.values())
+        min_val = min(elemental_data.values())
+
+    max_row = min(max_row, 9)
+
+    if max_row <= 0:
+        raise ValueError("The input argument 'max_row' must be positive!")
+
+    value_table = np.empty((max_row, 18)) * np.nan
+    blank_value = min_val - 0.01
+
+    for el in Element:
+        if el.row > max_row:
+            continue
+        value = elemental_data.get(el.symbol, blank_value)
+        value_table[el.row - 1, el.group - 1] = value
+
+    # Initialize the plt object
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(dpi=500)
+    plt.gcf().set_size_inches(12, 8)
+
+    # We set nan type values to masked values (ie blank spaces)
+    data_mask = np.ma.masked_invalid(value_table.tolist())
+    heatmap = ax.pcolor(
+        data_mask,
+        cmap=cmap,
+        edgecolors="w",
+        linewidths=1,
+        vmin=min_val - 0.001,
+        vmax=max_val + 0.001,
+    )
+    cbar = fig.colorbar(heatmap)
+
+    # Grey out missing elements in input data
+    cbar.cmap.set_under(blank_color)
+
+    # Set the colorbar label and tick marks
+    cbar.set_label(cbar_label, rotation=270, labelpad=25, size=cbar_label_size)
+    cbar.ax.tick_params(labelsize=cbar_label_size)
+
+    # Refine and make the table look nice
+    ax.axis("off")
+    ax.invert_yaxis()
+
+    # Label each block with corresponding element and value
+    for i, row in enumerate(value_table):
+        for j, el in enumerate(row):
+            if not np.isnan(el):
+                symbol = Element.from_row_and_group(i + 1, j + 1).symbol
+                try:
+                    oxi_state = oxi_state_data[symbol]
+                    if oxi_state == 1:
+                        use_label = '$%s^{+}$' % (str(symbol))
+                    else:
+                        use_label = '$%s^{%s+}$' % (str(symbol), str(oxi_state))
+                except:
+                    use_label = '$%s$' % str(symbol)
+                plt.text(
+                    j + 0.5,
+                    i + 0.25,
+                    use_label,
+                    horizontalalignment="center",
+                    verticalalignment="center",
+                    fontsize=14,
+                )
+                if el != blank_value and value_format is not None:
+                    plt.text(
+                        j + 0.5,
+                        i + 0.5,
+                        value_format % el,
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                        fontsize=10,
+                    )
+
+    plt.tight_layout()
+    if name != None:
+        plt.savefig(name)
+
+    if show_plot:
+        plt.show()
+
+    return plt
+
+def periodic_table_heatmap_plot(species, counts, dct, threshold=2, show='IQR', name=None):
+    radioactive = ['Ac', 'Am', 'Ar', 'At', 'Bk', 'Cf', 'Cm', 'Es', 'Fm', 'Fr', 'He', 'Kr', 'Lr',
+               'Md', 'Ne', 'No', 'Np', 'Pa', 'Po', 'Pu', 'Ra', 'Rn', 'Th', 'U', 'Xe']
+    exclude = ['I']
+
+    use_species = []
+    unique_elements = list(np.unique([s.element for s in species]))
+    for el in unique_elements:
+        use_specie = None
+        count = 0
+        element_species = [s for s in species if s.element == el]
+        for element_specie in element_species:
+            el_index = species.index(element_specie)
+            el_count = counts[el_index]
+            if el_count > count and el_count > threshold:
+                count = el_count
+                use_specie = element_specie
+        if use_specie != None:
+            use_species.append(use_specie)
+
+    params_list = [[] for i in range(len(use_species))]
+    for cmpd_key in list(dct.keys()):
+        entry = get_parameters(dct, cmpd=cmpd_key)
+        cations = entry['Cation']
+        R0s = entry['R0']
+        use = True
+
+        for cat_ind in range(len(cations)):
+            if str(cations[cat_ind].element) in radioactive + exclude:
+                use = False
+
+        for cat_ind in range(len(cations)):
+            if cations[cat_ind] in use_species and use == True:
+                #print(cations[cat_ind])
+                params_index = use_species.index(cations[cat_ind])
+                params_list[params_index].append(R0s[cat_ind])
+    print(len(use_species))
+    plot_dict = {}
+    oxi_dict = {}
+    if show == 'IQR':
+        vals = [np.round(iqr(s_R0), 3) for s_R0 in params_list]
+        elements = [str(s.element) for s in use_species]
+        oxi_states = [s.oxi_state for s in use_species]
+        for element_ind in range(len(elements)):
+            plot_dict[elements[element_ind]] = vals[element_ind]
+            oxi_dict[elements[element_ind]] = oxi_states[element_ind]
+        periodic_table_heatmap(plot_dict, oxi_dict, cmap='Wistia', cbar_label='$Interquartile \enspace Range, \enspace IQR \: (\\AA)$',
+                               value_format ='%.3f', name=name)
+        #plot_periodic_table_heatmap(plot_dict, cbar_label='IQR', value_format ='%.3f')
+    elif show == 'std':
+        vals = [np.std(s_R0) for s_R0 in params_list]
+        elements = [str(s.element) for s in use_species]
+        for element_ind in range(len(elements)):
+            plot_dict[elements[element_ind]] = vals[element_ind]
+        periodic_table_heatmap(plot_dict, cbar_label='std', value_format ='%.3f', name=name)
+    elif show == 'median':
+        vals = [np.round(np.median(s_R0), 3) for s_R0 in params_list]
+        elements = [str(s.element) for s in use_species]
+        oxi_states = [s.oxi_state for s in use_species]
+        for element_ind in range(len(elements)):
+            plot_dict[elements[element_ind]] = vals[element_ind]
+            oxi_dict[elements[element_ind]] = oxi_states[element_ind]
+        periodic_table_heatmap(plot_dict, oxi_dict, cmap='Wistia', cbar_label='$Median \enspace R_{0}, \enspace \hatR_{0} \: (\\AA)$',
+                               value_format ='%.3f', name=name)
+    elif show == 'mean':
+        vals = [np.mean(s_R0) for s_R0 in params_list]
+        elements = [str(s.element) for s in use_species]
+        for element_ind in range(len(elements)):
+            plot_dict[elements[element_ind]] = vals[element_ind]
+        periodic_table_heatmap(plot_dict, cbar_label='mean', value_format ='%.3f', name=name)
+    elif show == 'range':
+        vals = [np.subtract(max(s_R0), min(s_R0)) for s_R0 in params_list]
+        elements = [str(s.element) for s in use_species]
+        for element_ind in range(len(elements)):
+            plot_dict[elements[element_ind]] = vals[element_ind]
+        periodic_table_heatmap(plot_dict, cbar_label='range', value_format ='%.3f', name=name)
+    else:
+        print('Not an option')
+        sys.exit(1)
+    return use_species, vals, show
