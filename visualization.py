@@ -2,12 +2,18 @@
 # date - 1/20/2022
 
 import matplotlib
+from matplotlib import figure
+#from mpl_toolkits.axes_grid.inset_locator import inset_axes
+#import matplotlib.image as mpimg
+#from matplotlib.offsetbox import TextArea, DrawingArea, OffsetImage, AnnotationBbox
+#from matplotlib.cbook import get_sample_data
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from analysis import correct_ordering, get_parameters
-from scipy.stats import iqr
+from scipy.stats import iqr, linregress
 from gii_calculator import GIICalculator
-from tqdm import tqdm
+#from tqdm import tqdm
 from scipy.stats import pearsonr
 #import collections
 from pymatgen.core.periodic_table import Element
@@ -346,3 +352,182 @@ def periodic_table_heatmap_plot(species, counts, dct, threshold=2, show='IQR', n
         print('Not an option')
         sys.exit(1)
     return use_species, vals, show
+
+# Use to compare R0, GS DFT to R0, RMSD Parameters
+def compare_rmsd_to_gs_dft_R0(rmsd_dct, gs_dft_dct, name=None):
+    alkali_metals = ['Li', 'Na', 'K', 'Rb', 'Cs', 'Fr']
+    alkaline_earth_metals = ['Be', 'Mg', 'Ca', 'Sr', 'Ba', 'Ra']
+    transition_metals = ['Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Y', 'Zr', 'Nb', 'Mo', 'Tc',
+                  'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg']
+    lanthanides = ['La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu']
+    actinides = ['Ac', 'Th', 'Pa', 'U', 'Np', 'Pu']
+    post_transition_metals = ['Al', 'Ga', 'In', 'Sn', 'Tl', 'Pb', 'Bi', 'Po']
+    metalloids = ['B', 'Si', 'Ge', 'As', 'Sb', 'Te']
+
+    use_colors = ['#1A1423', '#8D5A97', '#ED1C24', '#214E34', '#01BAEF', '#7B3E19']
+
+    comp_rmsd_gii_gs_dct = {'cations': [], 'rmsds': [], 'gii_gss': [], 'labels': [], 'colors': []}
+
+    for c in rmsd_dct['Cation']:
+        rmsd_index = rmsd_dct['Cation'].index(c)
+        comp_rmsd_gii_gs_dct['cations'].append(c)
+        comp_rmsd_gii_gs_dct['rmsds'].append(rmsd_dct['R0'][rmsd_index])
+        gii_gs_index = gs_dft_dct['Cation'].index(c)
+        comp_rmsd_gii_gs_dct['gii_gss'].append(gs_dft_dct['R0'][gii_gs_index])
+        if str(c.element) in alkali_metals:
+            comp_rmsd_gii_gs_dct['labels'].append('Alkali metal')
+            comp_rmsd_gii_gs_dct['colors'].append(use_colors[0])
+        elif str(c.element) in alkaline_earth_metals:
+            comp_rmsd_gii_gs_dct['labels'].append('Alkaline earth metal')
+            comp_rmsd_gii_gs_dct['colors'].append(use_colors[1])
+        elif str(c.element) in transition_metals:
+            comp_rmsd_gii_gs_dct['labels'].append('Transition metal')
+            comp_rmsd_gii_gs_dct['colors'].append(use_colors[2])
+        elif str(c.element) in lanthanides:
+            comp_rmsd_gii_gs_dct['labels'].append('Lanthanide')
+            comp_rmsd_gii_gs_dct['colors'].append(use_colors[3])
+        elif str(c.element) in post_transition_metals:
+            comp_rmsd_gii_gs_dct['labels'].append('Post-transition metal')
+            comp_rmsd_gii_gs_dct['colors'].append(use_colors[4])
+        elif str(c.element) in metalloids:
+            comp_rmsd_gii_gs_dct['labels'].append('Metalloid')
+            comp_rmsd_gii_gs_dct['colors'].append(use_colors[5])
+
+    compare_methods_df = pd.DataFrame(comp_rmsd_gii_gs_dct)
+    #figure(figsize=(5, 5), dpi=500)
+    #colors = ['#001219', '#1C2541', '#005F73', '#0A9396', '#38040E', '#800E13', '#BB3E03', '#CA6702']
+    plt.tight_layout()
+    for label in list(np.unique(compare_methods_df['labels'])):
+        label_df = compare_methods_df[compare_methods_df['labels'] == label]
+        print(label, np.round(np.mean(np.subtract(label_df['rmsds'], label_df['gii_gss'])), 3))
+        scatter = plt.scatter(label_df['rmsds'], label_df['gii_gss'],
+                              c=label_df['colors'], label=label_df['labels'].iloc[0], edgecolor='w', marker='x')
+    plt.plot([1.6, 2.4], [1.6, 2.4], '--', c='black')
+    plt.xlim([1.6, 2.4])
+    plt.ylim([1.6, 2.4])
+    plt.xlabel('$RMSD \enspace Minimization \enspace R_{0}, \enspace \AA$')
+    plt.ylabel('$GII_{GS \: DFT} \enspace Minimization \enspace R_{0}, \enspace \AA$')
+    plt.legend(fontsize=9.7)
+    plt.plot([1.6, 2.4], [1.6, 2.4], '--', c='black')
+    if name != None:
+        plt.savefig(name, bbox_inches='tight', dpi=500)
+    return
+
+# Publication thumbnail
+
+def pub_thumbnail(cmpd_giis, cmpd_energies, name=None):
+    def f(x, y):
+        y1 = 3.5
+        x1 = 1
+        return 1-(0.8*(abs(x-x1)+abs(y-y1))+np.sin(x+y)+np.cos(x-y))
+
+    x = np.linspace(0, 6, 80)
+    y = np.linspace(0, 5, 80)
+
+    X, Y = np.meshgrid(x, y)
+    Z = f(X, Y)
+    xo = 0.9
+    yo = 3.9
+
+    sxo = 4.35
+    syo = 4.4
+
+    fig, axes = plt.subplots()
+
+    plt.contourf(X, Y, Z, 15, cmap='RdGy_r',alpha=0.7)#colors='black')
+    plt.ylabel('$R^{A}_{0} \: (\AA)$',fontsize=18)
+    plt.xlabel('$R^{B}_{0} \: (\AA)$',fontsize=18)
+    plt.yticks([])
+    plt.xticks([])
+    plt.scatter([xo],[yo],s=550, alpha=1,marker=(5, 1),c='darkred')
+    plt.plot([0,xo],[yo,yo],'--',lw=1,c='darkred')
+    plt.plot([xo,xo],[0,yo],'--',lw=1,c='darkred')
+    #plt.text(0.1,4.5,'$(R_{0,Opt}^{A-site}, \: R_{0,Opt}^{B-site})$',fontsize=14)
+    #plt.text(1.0,4.5,'$R_{0,Opt}^{B-site}$',fontsize=14)
+
+    x_fill = np.linspace(0, 6, 90)
+    y_fill = list(1.5 + np.power(np.sqrt(3.5), np.linspace(0, 2, 30))) + [5 for i in range(60)]
+    y2_fill = [5 for i in range(90)]
+    plt.fill_between(x_fill, y_fill, y2_fill, color='blue', alpha=0.3, zorder=2)
+
+    # Optimization route
+    plt.text(4.45,4.45,'start',fontsize=12)
+    plt.text(0.4, 4.5,'$p\geq C$',fontsize=12)
+    rA = np.linspace(syo,yo,7)
+    rB = np.linspace(sxo,xo,7)
+    dr = [0,0.2,0.5,0.2,0.2,0.25,0]
+    #plt.plot(rB,rA)
+    plt.plot(rB,[x+dr[i] for i,x in enumerate(rA)],ls='-',lw=1.5,c='k')
+    #plt.arrow(x, y, dx, dy, **kwargs)
+    plt.arrow(rB[5], rA[5]+0.25, rB[6]-rB[5],rA[6]-rA[5]-dr[5],
+              length_includes_head=True,
+              head_width=0.2,color='k',lw=1)
+              #ls='dotted')
+    #cb = plt.colorbar(cmap='RdGy')
+
+    sm = plt.cm.ScalarMappable(cmap='RdGy')
+    sm.set_clim(vmin=1, vmax=0)
+    cb = plt.colorbar(sm, alpha=0.7)
+    #cb.ax.set_ylabel('P$_{(\Delta H^{DFT}_{d}}$$_{vs}$ $_{GII)}$',fontsize=18)
+    cb.ax.set_ylabel('$GII_{GS \: DFT} \enspace (v.u.)$',fontsize=18)
+    #cb.ax.set_yticks([0,0.5,1])
+    #cb.ax.set_yticklabels([0,0.5,1])
+    #xis = [0.0.25,0.5,0.7]
+    for t in cb.ax.get_yticklabels():
+         t.set_fontsize(14)
+     #t.set_label()
+    #plt.colorbar(cmap='RdGy')
+    #ax = inset_axes(axes,
+    #                    width="50%", # width = 30% of parent_bbox
+    #                    height="50%", # height : 1 inch
+    #                    loc=4)
+                        #bbox_to_anchor=(2, 4, 6, 5))
+                        #loc=(0.1,0.1))
+
+
+    axi = axes.inset_axes([0.32, 0.12, 0.65, 0.65])
+
+
+    #inset_axes.set_axis_off()
+    axi.set_yticks([])
+    axi.set_xticks([])
+    axi.set_xlabel('$GII \enspace (v.u.)$',fontsize=17)
+    axi.set_ylabel('$\Delta H^{DFT}_{d}$ ${(\dfrac{eV}{atom})}$',fontsize=17)
+    #axi.set_ylabel('$\Delta H^{DFT}_{d}$ (eV/atom)',fontsize=18)
+    for i in range(len(cmpd_energies)):
+        if cmpd_energies[i] == np.min(cmpd_energies):
+            axi.scatter(cmpd_giis[i], cmpd_energies[i], s=70, alpha=0.8,
+                                            facecolors='none', edgecolors='purple', linewidth=2)
+        else:
+            axi.scatter(cmpd_giis[i], cmpd_energies[i], color='purple', s=100, alpha=0.8,
+                                                  marker='o', edgecolor='w')
+    #axi.scatter(cmpd_giis, cmpd_e ,alpha=0.8,s=80,c='purple', edgecolor='white')
+    xx =[min(cmpd_giis), np.mean(cmpd_giis), max(cmpd_giis)]
+    slope, intercept, r_value, p_value, std_err = linregress(cmpd_giis, cmpd_energies)
+    axi.plot(xx,[x*slope+intercept for x in xx],'k--',lw=1.5)
+    axi.text(0.09,0.0255,'$GII_{GS \: DFT}$',fontsize=12)
+    p = np.round(pearsonr(cmpd_energies, cmpd_giis)[0], 3)
+    axi.text(0.26, 0.0275, '$p=%s$' % (str(p)),fontsize=16)
+
+    imfile = 'thumbnail_png/New_ABO3.png'
+    im = plt.imread(imfile)
+    #ai = mpimg.imread(imfile)
+    #imagebox = OffsetImage(ai, zoom=1)
+    #ab = AnnotationBbox(imagebox, (0.4, 0.6), zorder=4)
+    #axi.add_artist(ab)
+    axii = axi.inset_axes([-0.0, 0.525, 0.45, 0.45])
+    axii.set_yticks([])
+    axii.set_xticks([])
+    axii.spines['top'].set_visible(False)
+    axii.spines['right'].set_visible(False)
+    axii.spines['bottom'].set_visible(False)
+    axii.spines['left'].set_visible(False)
+    axii.patch.set_facecolor('None')
+    axii.patch.set_alpha(0.0)
+    axii.imshow(im)
+
+    if name != None:
+        plt.savefig(name, dpi=800)
+    return
+
+# Use to plot different bond valence tolerance factors for different parameters
