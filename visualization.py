@@ -31,7 +31,7 @@ def plot_giis_pearsons(giis, pearsons, orderings, name=None):
     #axins1 = zoomed_inset_axes(ax1, 1.5, loc= 'lower left', bbox_to_anchor=(0,0), borderpad=3)
     ax1.set_xlim([0, 1])
     ax1.set_ylim([0, 115])
-    ax1.set_xlabel('$DFT \enspace Ground \enspace State \enspace GII, \enspace GII_{GS \: DFT} \enspace (v.u.)$')
+    ax1.set_xlabel('$DFT \enspace Ground \enspace State \enspace GII, \enspace GII_{GS - DFT} \enspace (v.u.)$')
     #ax1.set_ylabel('$Count$')
 
     ax2.hist(pearsons, bins=np.arange(-1.0, 1.1, 0.1), edgecolor='w', color='#ED1C24')
@@ -328,7 +328,7 @@ def periodic_table_heatmap_plot(species, counts, dct, threshold=2, show='IQR', n
         for element_ind in range(len(elements)):
             plot_dict[elements[element_ind]] = vals[element_ind]
             oxi_dict[elements[element_ind]] = oxi_states[element_ind]
-        periodic_table_heatmap(plot_dict, oxi_dict, cmap='Wistia', cbar_label='$Median \enspace R_{0}, \enspace \hatR_{0} \: (\\AA)$',
+        periodic_table_heatmap(plot_dict, oxi_dict, cmap='Wistia', cbar_label='$Median \enspace R_{0, \enspace GS - DFT}, \enspace \hatR_{0, \enspace GS - DFT} \: (\\AA)$',
                                value_format ='%.3f', name=name)
     elif show == 'mean':
         vals = [np.mean(s_R0) for s_R0 in params_list]
@@ -345,7 +345,7 @@ def periodic_table_heatmap_plot(species, counts, dct, threshold=2, show='IQR', n
     else:
         print('Not an option')
         sys.exit(1)
-    return use_species, vals, show
+    return use_species, vals
 
 # Use to compare R0, GS DFT to R0, RMSD Parameters
 def compare_rmsd_to_gs_dft_R0(rmsd_dct, gs_dft_dct, name=None):
@@ -391,21 +391,25 @@ def compare_rmsd_to_gs_dft_R0(rmsd_dct, gs_dft_dct, name=None):
     #figure(figsize=(5, 5), dpi=500)
     #colors = ['#001219', '#1C2541', '#005F73', '#0A9396', '#38040E', '#800E13', '#BB3E03', '#CA6702']
     plt.tight_layout()
-    plt.rcParams["figure.figsize"] = (6, 6)
+    fig, (ax1) = plt.subplots(1, 1, figsize=(6, 6), sharey=False, sharex=False, dpi=500)
     for label in list(np.unique(compare_methods_df['labels'])):
         label_df = compare_methods_df[compare_methods_df['labels'] == label]
-        print(label, np.round(np.mean(np.subtract(label_df['rmsds'], label_df['gii_gss'])), 3))
-        scatter = plt.scatter(label_df['gii_gss'], label_df['rmsds'],
-                              c=label_df['colors'], label=label_df['labels'].iloc[0], edgecolor='w', marker='x')
+        print(label, len(label_df), np.round(np.mean(np.subtract(label_df['rmsds'], label_df['gii_gss'])), 3))
+        scatter = ax1.scatter(label_df['gii_gss'], label_df['rmsds'],
+                              c=label_df['colors'], label=label_df['labels'].iloc[0], marker='x')
 
-    plt.gcf().set_dpi(500)
-    plt.plot([1.6, 2.4], [1.6, 2.4], '--', c='black')
-    plt.xlim([1.6, 2.4])
-    plt.ylim([1.6, 2.4])
-    plt.ylabel('$R_{0, \: RMSD} \enspace (\AA)$')
-    plt.xlabel('$R_{0, \: GS \: DFT} \enspace (\AA)$')
-    plt.legend(fontsize=9.7)
-    plt.plot([1.6, 2.4], [1.6, 2.4], '--', c='black')
+    ax1.set_xlim([1.6, 2.4])
+    ax1.set_ylim([1.6, 2.4])
+    ax1.set_yticks(np.arange(1.6, 2.6, 0.2))
+    ax1.set_xticks(np.arange(1.6, 2.6, 0.2))
+    ax1.plot([1.6, 2.4], [1.6, 2.4], '--', c='black')
+    ax1.legend(fontsize=9.7)
+    #ax1.set_yticks(np.arange(0.8, 1.05, 0.05))
+    #ax1.set_xticks(np.arange(0.8, 1.05, 0.05))
+    ax1.tick_params(axis='both', which='major', labelsize=18)
+    ax1.set_ylabel('$R_{0, \: RMSD} \enspace (\AA)$', fontsize=24)
+    ax1.set_xlabel('$R_{0, \: GS - DFT} \enspace (\AA)$', fontsize=24)
+
     if name != None:
         plt.savefig(name, bbox_inches='tight', dpi=500)
     return
@@ -466,7 +470,7 @@ def pub_thumbnail(cmpd_giis, cmpd_energies, name=None):
     sm.set_clim(vmin=1, vmax=0)
     cb = plt.colorbar(sm, alpha=0.7)
     #cb.ax.set_ylabel('P$_{(\Delta H^{DFT}_{d}}$$_{vs}$ $_{GII)}$',fontsize=18)
-    cb.ax.set_ylabel('$GII_{GS \: DFT} \enspace (v.u.)$',fontsize=18)
+    cb.ax.set_ylabel('$GII_{GS - DFT} \enspace (v.u.)$',fontsize=18)
     #cb.ax.set_yticks([0,0.5,1])
     #cb.ax.set_yticklabels([0,0.5,1])
     #xis = [0.0.25,0.5,0.7]
@@ -502,11 +506,11 @@ def pub_thumbnail(cmpd_giis, cmpd_energies, name=None):
     xx =[min(cmpd_giis), np.mean(cmpd_giis), max(cmpd_giis)]
     slope, intercept, r_value, p_value, std_err = linregress(cmpd_giis, cmpd_energies)
     axi.plot(xx,[x*slope+intercept for x in xx],'k--',lw=1.5)
-    axi.text(0.09,0.0255,'$GII_{GS \: DFT}$',fontsize=12)
+    axi.text(0.09,0.0255,'$GII_{GS - DFT}$',fontsize=12)
     p = np.round(pearsonr(cmpd_energies, cmpd_giis)[0], 3)
     axi.text(0.26, 0.0275, '$p=%s$' % (str(p)),fontsize=16)
 
-    imfile = 'thumbnail_png/New_ABO3.png'
+    imfile = 'figures/New_ABO3.png'
     im = plt.imread(imfile)
     #ai = mpimg.imread(imfile)
     #imagebox = OffsetImage(ai, zoom=1)
@@ -528,7 +532,7 @@ def pub_thumbnail(cmpd_giis, cmpd_energies, name=None):
     return
 
 # Use to plot different bond valence tolerance factors for different parameters
-def compare_tbvs(cmpds_dct, rmsd_dct, gs_dft_dct, structures_energies):
+def compare_tbvs(cmpds_dct, rmsd_dct, gs_dft_dct, structures_energies, name=None):
     tbv_rmsds = []
     tbv_mods = []
     diffs = []
@@ -545,14 +549,20 @@ def compare_tbvs(cmpds_dct, rmsd_dct, gs_dft_dct, structures_energies):
 
     cmap = plt.cm.get_cmap('gist_rainbow_r', 20)
     fig, (ax1) = plt.subplots(1, 1, figsize=(8, 8), sharey=False, sharex=False, dpi=400)
-    im = ax1.scatter(tbv_mods, tbv_rmsds, c=diffs, cmap=cmap, vmin=-1, vmax=0)
-    ax1.set_xlim(0.81, 1.01)
-    ax1.set_ylim(0.81, 1.01)
-    ax1.plot([0.81, 1.01], (0.81, 1.01), '--', c='black')
-    ax1.set_yticks(np.arange(0.85, 1.00, 0.05))
+    im = ax1.scatter(tbv_mods, tbv_rmsds, c=diffs, cmap=cmap, vmin=-1, vmax=0, edgecolor='white')
+    ax1.set_xlim(0.79, 1.01)
+    ax1.set_ylim(0.79, 1.01)
+    ax1.plot([0.79, 1.01], (0.79, 1.01), '--', c='black')
+    ax1.set_yticks(np.arange(0.8, 1.05, 0.05))
+    ax1.set_xticks(np.arange(0.8, 1.05, 0.05))
+    ax1.tick_params(axis='both', which='major', labelsize=18)
     ax1.set_ylabel('$t_{bv, \: RMSD}$', fontsize=24)
-    ax1.set_xlabel('$t_{bv, \: GS \: DFT}$', fontsize=24)
+    ax1.set_xlabel('$t_{bv, \: GS - DFT}$', fontsize=24)
     cbar = fig.colorbar(im, ax=ax1)
-    cbar.set_label('$BO_{6} \: Tilting \: Stabilization, \: \dfrac{eV}{atom}$', rotation=90, fontsize=18)
+    cbar.set_label('$Energetic \: Stabilization \: of \: BO_{6} \: Tilting, \: \dfrac{eV}{atom}$', rotation=90, fontsize=18)
+    cbar.ax.tick_params(labelsize=14)
+
+    if name != None:
+        plt.savefig(name)
 
     return
