@@ -3,21 +3,15 @@
 
 import matplotlib
 from matplotlib import figure
-#from mpl_toolkits.axes_grid.inset_locator import inset_axes
-#import matplotlib.image as mpimg
-#from matplotlib.offsetbox import TextArea, DrawingArea, OffsetImage, AnnotationBbox
-#from matplotlib.cbook import get_sample_data
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from analysis import correct_ordering, get_parameters
 from scipy.stats import iqr, linregress
 from gii_calculator import GIICalculator
-#from tqdm import tqdm
 from scipy.stats import pearsonr
-#import collections
 from pymatgen.core.periodic_table import Element
-#from pymatgen.core.composition import Composition
+from analysis import calculate_tbv_for_composition
 import sys
 import re
 import copy
@@ -397,16 +391,19 @@ def compare_rmsd_to_gs_dft_R0(rmsd_dct, gs_dft_dct, name=None):
     #figure(figsize=(5, 5), dpi=500)
     #colors = ['#001219', '#1C2541', '#005F73', '#0A9396', '#38040E', '#800E13', '#BB3E03', '#CA6702']
     plt.tight_layout()
+    plt.rcParams["figure.figsize"] = (6, 6)
     for label in list(np.unique(compare_methods_df['labels'])):
         label_df = compare_methods_df[compare_methods_df['labels'] == label]
         print(label, np.round(np.mean(np.subtract(label_df['rmsds'], label_df['gii_gss'])), 3))
-        scatter = plt.scatter(label_df['rmsds'], label_df['gii_gss'],
+        scatter = plt.scatter(label_df['gii_gss'], label_df['rmsds'],
                               c=label_df['colors'], label=label_df['labels'].iloc[0], edgecolor='w', marker='x')
+
+    plt.gcf().set_dpi(500)
     plt.plot([1.6, 2.4], [1.6, 2.4], '--', c='black')
     plt.xlim([1.6, 2.4])
     plt.ylim([1.6, 2.4])
-    plt.xlabel('$RMSD \enspace Minimization \enspace R_{0}, \enspace \AA$')
-    plt.ylabel('$GII_{GS \: DFT} \enspace Minimization \enspace R_{0}, \enspace \AA$')
+    plt.ylabel('$R_{0, \: RMSD} \enspace (\AA)$')
+    plt.xlabel('$R_{0, \: GS \: DFT} \enspace (\AA)$')
     plt.legend(fontsize=9.7)
     plt.plot([1.6, 2.4], [1.6, 2.4], '--', c='black')
     if name != None:
@@ -531,3 +528,31 @@ def pub_thumbnail(cmpd_giis, cmpd_energies, name=None):
     return
 
 # Use to plot different bond valence tolerance factors for different parameters
+def compare_tbvs(cmpds_dct, rmsd_dct, gs_dft_dct, structures_energies):
+    tbv_rmsds = []
+    tbv_mods = []
+    diffs = []
+
+    for key in list(cmpds_dct.keys()):
+        rmsd_tbv = calculate_tbv_for_composition(key, cmpds_dct, rmsd_dct)
+        gs_dft_tbv = calculate_tbv_for_composition(key, cmpds_dct, gs_dft_dct)
+        min_energy = np.min(structures_energies[key]['energies'])
+        max_energy = np.max(structures_energies[key]['energies'])
+
+        tbv_rmsds.append(rmsd_tbv)
+        tbv_mods.append(gs_dft_tbv)
+        diffs.append(np.subtract(min_energy, max_energy))
+
+    cmap = plt.cm.get_cmap('gist_rainbow_r', 20)
+    fig, (ax1) = plt.subplots(1, 1, figsize=(8, 8), sharey=False, sharex=False, dpi=400)
+    im = ax1.scatter(tbv_mods, tbv_rmsds, c=diffs, cmap=cmap, vmin=-1, vmax=0)
+    ax1.set_xlim(0.81, 1.01)
+    ax1.set_ylim(0.81, 1.01)
+    ax1.plot([0.81, 1.01], (0.81, 1.01), '--', c='black')
+    ax1.set_yticks(np.arange(0.85, 1.00, 0.05))
+    ax1.set_ylabel('$t_{bv, \: RMSD}$', fontsize=24)
+    ax1.set_xlabel('$t_{bv, \: GS \: DFT}$', fontsize=24)
+    cbar = fig.colorbar(im, ax=ax1)
+    cbar.set_label('$BO_{6} \: Tilting \: Stabilization, \: \dfrac{eV}{atom}$', rotation=90, fontsize=18)
+
+    return
