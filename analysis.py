@@ -2,6 +2,7 @@
 # date - 1/20/2022
 
 from gii_calculator import GIICalculator
+from pymatgen.core.composition import Composition
 from scipy.stats import pearsonr
 import numpy as np
 import sys
@@ -156,3 +157,84 @@ def percentage_IQR_med(species_to_use, full_species_meds, full_species_IQRs, ful
         percents.append(np.multiply(np.round(np.divide(iqr, med), 3), 100))
 
     return percents
+
+def get_opt_MX(R0, B, nM, coord_num):
+    return R0-B*np.log(nM/coord_num)
+
+def tbv_calculator(A_species, B_species, X_species, param_dct,
+                   A_fracs, B_fracs, X_fracs):
+    ### Calculate tbv by taking the weighted means of the different species
+    A_pairs = []
+    A_weights = []
+    for A_specie_ind in range(len(A_species)):
+        for X_specie_ind in range(len(X_species)):
+            A_pairs.append((A_species[A_specie_ind], X_species[X_specie_ind]))
+            A_weights.append(np.multiply(A_fracs[A_specie_ind], X_fracs[X_specie_ind]))
+
+    B_pairs = []
+    B_weights = []
+    for B_specie_ind in range(len(B_species)):
+        for X_specie_ind in range(len(X_species)):
+            B_pairs.append((B_species[B_specie_ind], X_species[X_specie_ind]))
+            B_weights.append(np.multiply(B_fracs[B_specie_ind], X_fracs[X_specie_ind]))
+
+    opt_AXs = []
+    for A_pair in A_pairs:
+        cation_anion_index = get_cation_anion_pair_index(A_pair[0], A_pair[1], param_dct)
+        R0_A = param_dct['R0'][cation_anion_index]
+        B_A = param_dct['B'][cation_anion_index]
+        opt_AX = get_opt_MX(R0_A, B_A, A_pair[0].oxi_state, 12)
+        opt_AXs.append(opt_AX)
+
+    opt_BXs = []
+    for B_pair in B_pairs:
+        cation_anion_index = get_cation_anion_pair_index(B_pair[0], B_pair[1], param_dct)
+        R0_B = param_dct['R0'][cation_anion_index]
+        B_B = param_dct['B'][cation_anion_index]
+        opt_BX = get_opt_MX(R0_B, B_B, B_pair[0].oxi_state, 6)
+        opt_BXs.append(opt_BX)
+
+    normalized_A_weights = [A_weight/np.sum(A_weights) for A_weight in A_weights]
+    normalized_B_weights = [B_weight/np.sum(B_weights) for B_weight in B_weights]
+
+    mean_opt_AX = np.mean(np.multiply(normalized_A_weights, opt_AXs))
+    mean_opt_BX = np.mean(np.multiply(normalized_B_weights, opt_BXs))
+
+    return mean_opt_AX/(np.sqrt(2)*mean_opt_BX)
+
+def calculate_tbv_for_composition(composition, inputs_dct, params_dct):
+
+    ''' Composition: string
+        Inputs dictionary: {composition: {A_sites: [], B_sites: [], X_sites: []}}
+        Dictionary of species for each, organized by site '''
+
+    composition_object_dct = Composition(composition).fractional_composition.as_dict()
+    A_site_elements = [str(a.element) for a in inputs_dct[composition]['A_sites']]
+    B_site_elements = [str(b.element) for b in inputs_dct[composition]['B_sites']]
+    X_site_elements = [str(x.element) for x in inputs_dct[composition]['X_sites']]
+
+    A_specs = []
+    A_fracs = []
+    B_specs = []
+    B_fracs = []
+    X_specs = []
+    X_fracs = []
+
+    for key in composition_object_dct: # each element
+        if key in A_site_elements:
+            index = A_site_elements.index(key)
+            A_specs.append(inputs_dct[composition]['A_sites'][index])
+            A_fracs.append(composition_object_dct[key])
+        elif key in B_site_elements:
+            index = B_site_elements.index(key)
+            B_specs.append(inputs_dct[composition]['B_sites'][index])
+            B_fracs.append(composition_object_dct[key])
+        elif key in X_site_elements:
+            index = X_site_elements.index(key)
+            X_specs.append(inputs_dct[composition]['X_sites'][index])
+            X_fracs.append(composition_object_dct[key])
+
+    tbv = tbv_calculator(A_specs, B_specs, X_specs, params_dct,
+                       A_fracs, B_fracs, X_fracs)
+
+    return tbv
