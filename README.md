@@ -21,6 +21,9 @@ Collection of plots to visualize the number of DFT ground states correctly order
 # analysis.py
 Supporting functions for visualization.py
 
+# test.ipynb
+Jupyter notebook with examples for calculating GII, parameterizing R0 and B, optimizing structures using GII, and plotting these values
+
 # Dependencies
 Python packages:
 - Numpy >= v. 1.21.0
