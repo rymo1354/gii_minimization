@@ -3,6 +3,7 @@
 
 from gii_calculator import GIICalculator
 from pymatgen.core.composition import Composition
+from pymatgen.core.periodic_table import Specie
 from scipy.stats import pearsonr
 import numpy as np
 import sys
@@ -238,3 +239,103 @@ def calculate_tbv_for_composition(composition, inputs_dct, params_dct):
                        A_fracs, B_fracs, X_fracs)
 
     return tbv
+
+def bond_distances_by_coordination(cation, anion, dct):
+    final_dct = {}
+    gii_calc = GIICalculator()
+    cation_cmpds = [cmpd for cmpd in list(dct.keys()) if cation in dct[cmpd]['structures'][0].species]
+    for cmpd in cation_cmpds:
+        final_dct[cmpd] = {}
+        structures = dct[cmpd]['structures']
+        distances_dct = {}
+        for s in structures:
+            equiv_sites = gii_calc.get_equivalent_sites(s)
+            for equiv_sites_list in equiv_sites:
+                if equiv_sites_list[0].specie == cation: # Just for the cation of interest
+                    site_index = s.index(equiv_sites_list[0])
+                    neighbors = gii_calc.get_neighbors(s, site_index)
+                    key = len(neighbors)
+                    if key not in list(distances_dct.keys()):
+                        distances_dct[key] = []
+
+                    site_distances = []
+                    for neighbor in neighbors:
+                        distance = neighbor.nn_distance
+                        site_distances += [distance for i in range(len(equiv_sites_list))] # Distances for all sites
+                    mean_site_distance = np.mean(site_distances)
+                    distances_dct[key].append(mean_site_distance)
+        for key in list(distances_dct.keys()):
+            distances_dct[key] = np.mean(distances_dct[key])
+        final_dct[cmpd] = distances_dct
+
+    return final_dct
+
+def range_bond_distance_by_coordination(coord_dct):
+    coords = []
+    for cmpd in list(coord_dct.keys()):
+        for coord in list(coord_dct[cmpd].keys()):
+            coords.append(coord)
+    unique_coords, counts = np.unique(coords, return_counts=True)
+
+    coords_only = {}
+    for cmpd in list(coord_dct.keys()):
+        for coord in unique_coords:
+            if coord in list(coord_dct[cmpd].keys()):
+                mean_distance = coord_dct[cmpd][coord]
+                if coord not in list(coords_only.keys()):
+                    coords_only[coord] = []
+                coords_only[coord].append(mean_distance)
+    for coord in list(coords_only.keys()):
+        coords_only[coord] = np.max(coords_only[coord]) - np.min(coords_only[coord])
+
+    return coords_only, list(unique_coords), list(counts)
+
+def get_coordination_envs(unique_coords_list, counts_list):
+    coords_to_plot = []
+    for uc_ind, uc in enumerate(unique_coords_list):
+        for cn_ind, cn in enumerate(uc):
+            if counts_list[uc_ind][cn_ind] > 1 and cn not in coords_to_plot:
+                coords_to_plot.append(cn)
+
+    return sorted(coords_to_plot, reverse=True)
+
+def get_correct_gs_Ln3_Tm3(structures_energies, params_dct):
+    three_plus_tms = [Specie('Sc', 3), Specie('Ti', 3), Specie('V', 3), Specie('Cr', 3),
+                      Specie('Mn', 3), Specie('Fe', 3), Specie('Co', 3), Specie('Ni', 3),
+                      Specie('Cu', 3), Specie('Zn', 3)]
+    three_plus_lns = [Specie('La', 3), Specie('Ce', 3), Specie('Pr', 3), Specie('Nd', 3),
+                      Specie('Sm', 3), Specie('Eu', 3), Specie('Gd', 3), Specie('Tb', 3),
+                      Specie('Dy', 3), Specie('Ho', 3), Specie('Er', 3), Specie('Tm', 3),
+                      Specie('Yb', 3), Specie('Lu', 3)]
+    gs_total = 0
+    gs_two_total = 0
+    correct = 0
+
+    gii_calc = GIICalculator(params_dct)
+    for cmpd in tqdm(list(structures_energies.keys())):
+        species = list(np.unique(structures_energies[cmpd]['structures'][0].species))
+        has_tm = False
+        has_ln = False
+        for tm in three_plus_tms:
+            if tm in species:
+                has_tm = True
+        for ln in three_plus_lns:
+            if ln in species:
+                has_ln = True
+
+        if has_tm == True and has_ln == True:
+            print(cmpd)
+            opt_giis = [gii_calc.GII(s) for s in structures_energies[cmpd]['structures']]
+
+            rounded_energies = np.round(structures_energies[cmpd]['energies'], 3)
+            rounded_giis = np.round(opt_giis, 3)
+
+            zipped = zip(rounded_energies, rounded_giis)
+            sort = sorted(zipped, key = lambda t: t[1])
+            s_energies, s_giis = [sort[i][0] for i in range(len(sort))], [sort[i][1] for i in range(len(sort))]
+            if np.min(s_energies) == s_energies[0]: # if GII predicts the ground state energy
+                gs_total += 1
+            if np.min(s_energies) in s_energies[0:2]:
+                gs_two_total += 1
+            correct += 1
+    return gs_total, gs_two_total, correct

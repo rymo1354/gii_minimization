@@ -6,12 +6,13 @@ from matplotlib import figure
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from analysis import correct_ordering, get_parameters
+from analysis import correct_ordering, get_parameters, get_coordination_envs
 from scipy.stats import iqr, linregress
 from gii_calculator import GIICalculator
 from scipy.stats import pearsonr
 from pymatgen.core.periodic_table import Element
 from analysis import calculate_tbv_for_composition
+from collections import OrderedDict
 import sys
 import re
 import copy
@@ -92,10 +93,18 @@ def plot_by_species(pair, structures_energies, param_dct, name=None):
         opt_structures = structures_energies[cmpd]['structures']
         opt_energies = structures_energies[cmpd]['energies']
 
-        cation_inds = [i for i in range(len(opt_params['Cation'])) if opt_params['Cation'][i] == pair[0]]
-        anion_inds = [i for i in range(len(opt_params['Anion'])) if opt_params['Anion'][i] == pair[1]]
-        opt_ind = list(set(cation_inds) & set(anion_inds))[0]
-        comp_R0 = np.round(opt_params['R0'][opt_ind], 3)
+        if 'Cation' in keys and 'Anion' in keys:
+            other_cation = list(np.unique([s for s in structures_energies[cmpd]['structures'][0].species if s != pair[0] and np.sign(s.oxi_state) == 1]))[0]
+            other_cation_inds = [i for i in range(len(opt_params['Cation'])) if opt_params['Cation'][i] == other_cation]
+            anion_inds = [i for i in range(len(opt_params['Anion'])) if opt_params['Anion'][i] == pair[1]]
+            opt_ind = list(set(other_cation_inds) & set(anion_inds))[0]
+            comp_R0 = np.round(opt_params['R0'][opt_ind], 3)
+        else:
+            cation_inds = [i for i in range(len(opt_params['Cation'])) if opt_params['Cation'][i] == pair[0]]
+            anion_inds = [i for i in range(len(opt_params['Anion'])) if opt_params['Anion'][i] == pair[1]]
+            opt_ind = list(set(cation_inds) & set(anion_inds))[0]
+            comp_R0 = np.round(opt_params['R0'][opt_ind], 3)
+
         gii_calc = GIICalculator(opt_params)
         opt_giis = [gii_calc.GII(s) for s in opt_structures]
 
@@ -259,7 +268,7 @@ def periodic_table_heatmap(
 
     plt.tight_layout()
     if name != None:
-        plt.savefig(name)
+        plt.savefig(name, bbox_inches = "tight")
 
     if show_plot:
         plt.show()
@@ -267,10 +276,6 @@ def periodic_table_heatmap(
     return plt
 
 def periodic_table_heatmap_plot(species, counts, dct, threshold=2, show='IQR', name=None):
-    radioactive = ['Ac', 'Am', 'Ar', 'At', 'Bk', 'Cf', 'Cm', 'Es', 'Fm', 'Fr', 'He', 'Kr', 'Lr',
-               'Md', 'Ne', 'No', 'Np', 'Pa', 'Po', 'Pu', 'Ra', 'Rn', 'Th', 'U', 'Xe']
-    exclude = ['I']
-
     use_species = []
     unique_elements = list(np.unique([s.element for s in species]))
     for el in unique_elements:
@@ -280,7 +285,7 @@ def periodic_table_heatmap_plot(species, counts, dct, threshold=2, show='IQR', n
         for element_specie in element_species:
             el_index = species.index(element_specie)
             el_count = counts[el_index]
-            if el_count > count and el_count > threshold:
+            if el_count > count and el_count >= threshold:
                 count = el_count
                 use_specie = element_specie
         if use_specie != None:
@@ -292,10 +297,6 @@ def periodic_table_heatmap_plot(species, counts, dct, threshold=2, show='IQR', n
         cations = entry['Cation']
         R0s = entry['R0']
         use = True
-
-        for cat_ind in range(len(cations)):
-            if str(cations[cat_ind].element) in radioactive + exclude:
-                use = False
 
         for cat_ind in range(len(cations)):
             if cations[cat_ind] in use_species and use == True:
@@ -528,7 +529,7 @@ def pub_thumbnail(cmpd_giis, cmpd_energies, name=None):
     axii.imshow(im)
 
     if name != None:
-        plt.savefig(name, dpi=800)
+        plt.savefig(name, dpi=800, bbox_inches = "tight")
     return
 
 # Use to plot different bond valence tolerance factors for different parameters
@@ -563,6 +564,48 @@ def compare_tbvs(cmpds_dct, rmsd_dct, gs_dft_dct, structures_energies, name=None
     cbar.ax.tick_params(labelsize=14)
 
     if name != None:
-        plt.savefig(name)
+        plt.savefig(name, bbox_inches = "tight")
+
+    return
+
+def plot_broken_bar(dcts_list, cations_list, unique_coords_list, counts_list, width=0.005,
+                     colors = ['blue', 'purple', 'green', 'black', 'orange', 'cyan', 'maroon', 'lime'], name=None):
+
+    cns = get_coordination_envs(unique_coords_list, counts_list)
+    fig, ax = plt.subplots(1, 1, figsize=(6, 4), dpi=500)
+    fig.tight_layout()
+    max_val = 0
+
+    for cation_ind, cation in enumerate(cations_list):
+        y_val = ((cation_ind+1)*10, 9)
+        cation_dct = dcts_list[cation_ind]
+        unique_coords = unique_coords_list[cation_ind]
+        counts = counts_list[cation_ind]
+        for cn in cns:
+            try:
+                index = unique_coords.index(cn)
+                count = counts[index]
+            except:
+                continue
+
+            if count > 1:
+                color = colors[cns.index(cn)]
+                #print(colors_ind)
+                val = float(cation_dct[cn])
+                if val > max_val:
+                    max_val = val
+                alpha = count / np.max(counts)
+                ax.broken_barh([(val-width, 2*width)], y_val, facecolors=(color), label=cn, alpha=alpha)
+
+    handles, labels = ax.get_legend_handles_labels()
+    by_label = OrderedDict(zip(labels, handles))
+    ax.legend(by_label.values(), by_label.keys(), title='Coordination Number', ncol=2)
+    ax.set_xlim(0, max_val + 0.2)
+    ax.set_yticks([15+i*10 for i in range(len(cations_list))])
+    ax.set_yticklabels([str(c) for c in cations_list])
+    ax.set_xlabel('$Range \enspace of \enspace \overline{d}_{M-O}, \enspace \AA$')
+
+    if name != None:
+        plt.savefig(name, bbox_inches='tight')
 
     return
