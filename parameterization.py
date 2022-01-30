@@ -52,13 +52,13 @@ class CompositionSpecificBVParamOptimizationOuterLoop():
                 anions.append(ua)
         return cations, anions
 
-    def parameter_optimization(self, obj_func='gii_gs', parameterize='R0', lb=0.7,
+    def parameter_optimization(self, obj_func='gii_gs', parameterize='R0', lb=0.7, use_weighting=False,
                                options={'gtol': 1e-3, 'xtol': 1e-2, 'barrier_tol': 1e-2, 'disp': True, 'verbose': 0}):
         for composition in self.compositions:
             opt_index = self.compositions.index(composition)
             cations, anions = self.get_composition_cations_anions(composition)
             bvpo = BVParamOptimization([self.oxi_structures[opt_index]], [self.energies[opt_index]],
-                                               self.starting_params, cations, anions, lb=lb, obj_func=obj_func,
+                                               self.starting_params, cations, anions, lb=lb, use_weighting=use_weighting, obj_func=obj_func,
                                                parameterize=parameterize, options=options)
             bvpo.param_optimizer()
             self.updated_params_by_composition[composition] = bvpo.final_dict
@@ -149,7 +149,7 @@ class GeneralBVParamOptimizationOuterLoop():
 
         return use_dict
 
-    def parameter_optimization(self, obj_func='gii_gs', parameterize='R0', lb=0.7, opt_tol=0.01, init_steps=3, max_steps=12,
+    def parameter_optimization(self, obj_func='gii_gs', parameterize='R0', lb=0.7, opt_tol=0.01, init_steps=3, max_steps=12, use_weighting=False,
                                options={'gtol': 1e-3, 'xtol': 1e-2, 'barrier_tol': 1e-2, 'disp': True, 'verbose': 0}):
         ''' lb (float): lower bound for pearson correlation constraint
             opt_tol (float): if parameters following optimization are within this tolerance, no longer optimized
@@ -171,7 +171,7 @@ class GeneralBVParamOptimizationOuterLoop():
 
                 bvpo = BVParamOptimization(self.oxi_structures[opt_index],
                                                    self.energies[opt_index],
-                                                   starting_params, [pair[0]], [pair[1]], obj_func, lb, parameterize, options)
+                                                   starting_params, [pair[0]], [pair[1]], obj_func, lb, use_weighting, parameterize, options)
                 final_params = bvpo.param_optimizer()
                 final_R0, final_B = final_params['R0'][param_index], final_params['B'][param_index]
                 print(final_R0, final_B)
@@ -189,7 +189,7 @@ class GeneralBVParamOptimizationOuterLoop():
 
 class BVParamOptimization():
 
-    def __init__(self, oxi_structures, energies, starting_params, cations, anions, obj_func='gii_gs', lb=0.7, parameterize='R0',
+    def __init__(self, oxi_structures, energies, starting_params, cations, anions, obj_func='gii_gs', lb=0.7, use_weighting=False, parameterize='R0',
                  options={'gtol': 1e-3, 'xtol': 1e-2, 'barrier_tol': 1e-2, 'disp': True, 'verbose': 0}):
 
         self.oxi_structures = oxi_structures # Structures with oxidation states assigned, separated by composition
@@ -202,6 +202,7 @@ class BVParamOptimization():
 
         self.obj_function = obj_func # What to minimize- currently the ground state GII for each composition
         self.lb = lb # Pearson correlation lower bound- default is 0.7
+        self.use_weighting = use_weighting
         self.parameterize = parameterize
 
         self.options = options # Trust-Constrained Algorithm Options
@@ -330,7 +331,7 @@ class BVParamOptimization():
         # x0 is the params in the following order: all R0s, followed by all Bs
         new_dict = self.get_params_dict(x0)
         if self.obj_function == 'gii_gs':
-            func = self.get_sum_gs_giis(self.ground_state_structures, new_dict) # Minimize sum(GII_GS)
+            func = self.get_sum_gs_giis(self.ground_state_structures, new_dict, self.use_weighting) # Minimize sum(GII_GS)
         elif self.obj_function == 'di2_rmsd':
             func = self.get_sum_di_squared_rmsd(self.oxi_structures, new_dict)
         else:
