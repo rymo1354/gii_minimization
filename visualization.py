@@ -19,7 +19,7 @@ import copy
 
 # Used to plot the dataset statistics distributions
 def plot_giis_pearsons(giis, pearsons, orderings, name=None):
-
+    matplotlib.rcParams.update({'font.size': 16})
     fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(6, 6), sharey=False, sharex=False, dpi=300)
     fig.tight_layout()
     ax1.hist(giis, bins=np.arange(0, 2.21, 0.05), edgecolor='w', color='#1A1423')
@@ -31,7 +31,7 @@ def plot_giis_pearsons(giis, pearsons, orderings, name=None):
     #axins1.set_ylim(y1, y2)
     #axins1 = zoomed_inset_axes(ax1, 1.5, loc= 'lower left', bbox_to_anchor=(0,0), borderpad=3)
     ax1.set_xlim([0, 1])
-    ax1.set_ylim([0, 115])
+    ax1.set_ylim([0, 150])
     ax1.set_xlabel('$DFT \enspace Ground \enspace State \enspace GII, \enspace GII_{GS - DFT} \enspace (v.u.)$')
     #ax1.set_ylabel('$Count$')
 
@@ -40,7 +40,8 @@ def plot_giis_pearsons(giis, pearsons, orderings, name=None):
     ax2.set_ylim([0, 200])
     ax2.set_xlabel('$Pearson \enspace coefficient, \enspace p$')
     ax2.set_ylabel('$Count$')
-    axins2 = ax2.inset_axes([0.125, 0.25, 0.67, 0.67])
+    #axins2 = ax2.inset_axes([0.125, 0.25, 0.67, 0.67])
+    axins2 = ax2.inset_axes([0.25, 0.25, 0.67, 0.67])
     axins2.hist(pearsons, bins=np.arange(-1.0, 1.1, 0.01), edgecolor='w', color='#ED1C24')
     axins2.set_xlim(0.5, 1)
     axins2.set_ylim(0, 60)
@@ -55,6 +56,10 @@ def plot_giis_pearsons(giis, pearsons, orderings, name=None):
     ax3.set_xticks([1, 6, 11])
     ax3.set_ylim([0, 70])
     ax3.set_xlabel('$ Structures \enspace correctly \enspace ordered, \enspace N^{correct}$')
+
+    ax1.text(0.05, 142, 'a)', fontsize='large', weight='bold', fontfamily='serif', horizontalalignment='left', verticalalignment='top')
+    ax2.text(-0.9, 189, 'b)', fontsize='large', weight='bold', fontfamily='serif', horizontalalignment='left', verticalalignment='top')
+    ax3.text(0.6, 66, 'c)', fontsize='large', weight='bold', fontfamily='serif', horizontalalignment='left', verticalalignment='top')
     #ax3.set_ylabel('$Count$')
     #plt.tight_layout()
     if name != None:
@@ -453,8 +458,8 @@ def pub_thumbnail(cmpd_giis, cmpd_energies, name=None):
     plt.fill_between(x_fill, y_fill, y2_fill, color='blue', alpha=0.3, zorder=2)
 
     # Optimization route
-    plt.text(4.45,4.45,'start',fontsize=12)
-    plt.text(0.4, 4.5,'$p\geq C$',fontsize=12)
+    plt.text(4.45,4.45,'start',fontsize=15)
+    plt.text(0.4, 4.5,'$p\geq C$',fontsize=15)
     rA = np.linspace(syo,yo,7)
     rB = np.linspace(sxo,xo,7)
     dr = [0,0.2,0.5,0.2,0.2,0.25,0]
@@ -507,9 +512,9 @@ def pub_thumbnail(cmpd_giis, cmpd_energies, name=None):
     xx =[min(cmpd_giis), np.mean(cmpd_giis), max(cmpd_giis)]
     slope, intercept, r_value, p_value, std_err = linregress(cmpd_giis, cmpd_energies)
     axi.plot(xx,[x*slope+intercept for x in xx],'k--',lw=1.5)
-    axi.text(0.09,0.0255,'$GII_{GS - DFT}$',fontsize=12)
+    axi.text(0.09,0.0255,'$GII_{GS - DFT}$',fontsize=15)
     p = np.round(pearsonr(cmpd_energies, cmpd_giis)[0], 3)
-    axi.text(0.26, 0.0275, '$p=%s$' % (str(p)),fontsize=16)
+    axi.text(0.26, 0.0275, '$p=%s$' % (str(p)),fontsize=15)
 
     imfile = 'figures/New_ABO3.png'
     im = plt.imread(imfile)
