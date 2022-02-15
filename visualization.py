@@ -6,7 +6,7 @@ from matplotlib import figure
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from analysis import correct_ordering, get_parameters, get_coordination_envs
+from analysis import correct_ordering, get_parameters, get_coordination_envs, get_gs_ls_deviations, bar_plot
 from scipy.stats import iqr, linregress
 from gii_calculator import GIICalculator
 from scipy.stats import pearsonr
@@ -16,6 +16,7 @@ from collections import OrderedDict
 import sys
 import re
 import copy
+import warnings
 
 # Used to plot the dataset statistics distributions
 def plot_giis_pearsons(giis, pearsons, orderings, name=None):
@@ -40,11 +41,11 @@ def plot_giis_pearsons(giis, pearsons, orderings, name=None):
     ax2.set_ylim([0, 200])
     ax2.set_xlabel('$Pearson \enspace coefficient, \enspace p$')
     ax2.set_ylabel('$Count$')
-    #axins2 = ax2.inset_axes([0.125, 0.25, 0.67, 0.67])
     axins2 = ax2.inset_axes([0.25, 0.25, 0.67, 0.67])
     axins2.hist(pearsons, bins=np.arange(-1.0, 1.1, 0.01), edgecolor='w', color='#ED1C24')
     axins2.set_xlim(0.5, 1)
     axins2.set_ylim(0, 60)
+    #axins2.set_ylim(0, 80)
     axins2.tick_params(axis='both', which='major', labelsize=10)
 
     ys = [0 for i in range(1, 12, 1)]
@@ -55,11 +56,13 @@ def plot_giis_pearsons(giis, pearsons, orderings, name=None):
     ax3.set_xlim([0, 12])
     ax3.set_xticks([1, 6, 11])
     ax3.set_ylim([0, 70])
+    #ax3.set_ylim([0, 90])
     ax3.set_xlabel('$ Structures \enspace correctly \enspace ordered, \enspace N^{correct}$')
 
     ax1.text(0.05, 142, 'a)', fontsize='large', weight='bold', fontfamily='serif', horizontalalignment='left', verticalalignment='top')
     ax2.text(-0.9, 189, 'b)', fontsize='large', weight='bold', fontfamily='serif', horizontalalignment='left', verticalalignment='top')
     ax3.text(0.6, 66, 'c)', fontsize='large', weight='bold', fontfamily='serif', horizontalalignment='left', verticalalignment='top')
+    #ax3.text(0.6, 85, 'c)', fontsize='large', weight='bold', fontfamily='serif', horizontalalignment='left', verticalalignment='top')
     #ax3.set_ylabel('$Count$')
     #plt.tight_layout()
     if name != None:
@@ -442,8 +445,8 @@ def pub_thumbnail(cmpd_giis, cmpd_energies, name=None):
     fig, axes = plt.subplots()
 
     plt.contourf(X, Y, Z, 15, cmap='RdGy_r',alpha=0.7)#colors='black')
-    plt.ylabel('$R^{A}_{0} \: (\AA)$',fontsize=18)
-    plt.xlabel('$R^{B}_{0} \: (\AA)$',fontsize=18)
+    plt.ylabel('$R^{A}_{0,GS-DFT} \: (\AA)$',fontsize=18)
+    plt.xlabel('$R^{B}_{0,GS-DFT} \: (\AA)$',fontsize=18)
     plt.yticks([])
     plt.xticks([])
     plt.scatter([xo],[yo],s=550, alpha=1,marker=(5, 1),c='darkred')
@@ -553,20 +556,23 @@ def compare_tbvs(cmpds_dct, rmsd_dct, gs_dft_dct, structures_energies, name=None
         tbv_mods.append(gs_dft_tbv)
         diffs.append(np.subtract(min_energy, max_energy))
 
+    matplotlib.rcParams.update({'font.size': 10})
     cmap = plt.cm.get_cmap('gist_rainbow_r', 20)
-    fig, (ax1) = plt.subplots(1, 1, figsize=(8, 8), sharey=False, sharex=False, dpi=400)
-    im = ax1.scatter(tbv_mods, tbv_rmsds, c=diffs, cmap=cmap, vmin=-1, vmax=0, edgecolor='white')
+    fig, (ax1) = plt.subplots(1, 1, figsize=(5, 5), sharey=False, sharex=False, dpi=500)
+    im = ax1.scatter(tbv_mods, tbv_rmsds, c=diffs, cmap=cmap, vmin=-1, vmax=0, edgecolor='black')
     ax1.set_xlim(0.79, 1.01)
     ax1.set_ylim(0.79, 1.01)
     ax1.plot([0.79, 1.01], (0.79, 1.01), '--', c='black')
     ax1.set_yticks(np.arange(0.8, 1.05, 0.05))
     ax1.set_xticks(np.arange(0.8, 1.05, 0.05))
-    ax1.tick_params(axis='both', which='major', labelsize=18)
-    ax1.set_ylabel('$t_{bv, \: RMSD}$', fontsize=24)
-    ax1.set_xlabel('$t_{bv, \: GS - DFT}$', fontsize=24)
-    cbar = fig.colorbar(im, ax=ax1)
-    cbar.set_label('$Energetic \: Stabilization \: of \: BO_{6} \: Tilting, \: \dfrac{eV}{atom}$', rotation=90, fontsize=18)
-    cbar.ax.tick_params(labelsize=14)
+    ax1.tick_params(axis='both', which='major', labelsize=10)
+    ax1.set_ylabel('$t_{bv}, \enspace RMSD$', fontsize=14)
+    ax1.set_xlabel('$t_{bv}, \enspace GS-DFT$', fontsize=14)
+    cbar = fig.colorbar(im, ax=ax1, drawedges=True)
+    cbar.dividers.set_color('black')
+    cbar.dividers.set_linewidth(1)
+    cbar.set_label('$Stabilization \: from \: BO_{6} \: Tilting, \: \dfrac{eV}{atom}$', rotation=90, fontsize=12)
+    cbar.ax.tick_params(labelsize=10)
 
     if name != None:
         plt.savefig(name, bbox_inches = "tight")
@@ -612,5 +618,50 @@ def plot_broken_bar(dcts_list, cations_list, unique_coords_list, counts_list, wi
 
     if name != None:
         plt.savefig(name, bbox_inches='tight')
+
+    return
+
+def compare_ideal_bond_lengths(dct, gs_dft_params, rmsd_params):
+
+    gs_dft_gs_deviations, gs_dft_ls_deviations = get_gs_ls_deviations(dct, gs_dft_params)
+    rmsd_dft_gs_deviations, rmsd_dft_ls_deviations = get_gs_ls_deviations(dct, rmsd_params)
+    bins = np.arange(0, 0.56, 0.02)
+
+    gs_v1 = np.histogram(np.abs(gs_dft_ls_deviations), bins=bins)
+    gs_v2 = np.histogram(np.abs(gs_dft_gs_deviations), bins=bins)
+    x1s, y1s = bar_plot(gs_v1)
+    x2s, y2s = bar_plot(gs_v2)
+
+    rmsd_v1 = np.histogram(np.abs(rmsd_dft_ls_deviations), bins=bins)
+    rmsd_v2 = np.histogram(np.abs(rmsd_dft_gs_deviations), bins=bins)
+    rx1s, ry1s = bar_plot(rmsd_v1)
+    rx2s, ry2s = bar_plot(rmsd_v2)
+
+    matplotlib.rcParams.update({'font.size': 16})
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4), sharey=False, dpi=500)
+
+    warnings.filterwarnings("ignore")
+    ax1.bar(x2s, y2s, width=0.02, edgecolor='w', color='green', label='Ground state structures')
+    ax1.bar(x1s, [-1*y1 for y1 in y1s], width=0.02, edgecolor='w', color='blue', label='Least stable structures')
+    ax1.set_ylim(-700, 700)
+    ax1.set_xlim(-0.01, 0.36)
+    ax1.set_xlabel('$\| r^{BVM}_{ij} - \overline{r}_{ij} \|, \enspace \AA$', fontsize=20)
+    ax1.set_yticklabels([500, 500, 250, 0, 250, 500])
+    ax1.set_ylabel('$Count$', fontsize=20)
+    ax1.legend(fontsize=12, loc='lower right')
+    ax1.text(0.2, 100, '$R_{0,GS-DFT}$', fontsize=18)
+    ax1.text(0.3, 550, 'a)', fontsize='large', weight='bold', fontfamily='serif')
+
+    ax2.bar(rx2s, ry2s, width=0.02, edgecolor='w', color='green', label='Ground state structures')
+    ax2.bar(rx1s, [-1*y1 for y1 in ry1s], width=0.02, edgecolor='w', color='blue', label='Least stable structures')
+    ax2.set_xlim(-0.01, 0.36)
+    ax2.set_ylim(-700, 700)
+    ax2.set_xlim(-0.01, 0.36)
+    ax2.set_yticklabels([500, 500, 250, 0, 250, 500])
+    ax2.set_xlabel('$\| r^{BVM}_{ij} - \overline{r}_{ij} \|, \enspace \AA$', fontsize=20)
+    ax2.legend(fontsize=12, loc='lower right')
+    ax2.text(0.2, 100, '$R_{0,RMSD}$', fontsize=20)
+    ax2.text(0.3, 550, 'b)', fontsize='large', weight='bold', fontfamily='serif')
+    fig.savefig('figures/bond_length_comparison.png', bbox_inches = "tight")
 
     return
