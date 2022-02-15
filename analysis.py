@@ -339,3 +339,59 @@ def get_correct_gs_Ln3_Tm3(structures_energies, params_dct):
                 gs_two_total += 1
             correct += 1
     return gs_total, gs_two_total, correct
+
+def get_gs_and_ls(dct):
+    short_dct = {}
+    for cmpd in list(dct.keys()):
+        short_dct[cmpd] = {}
+        gs_ind = dct[cmpd]['energies'].index(np.min(dct[cmpd]['energies']))
+        ls_ind = dct[cmpd]['energies'].index(np.max(dct[cmpd]['energies']))
+        short_dct[cmpd]['gs'] = dct[cmpd]['structures'][gs_ind]
+        short_dct[cmpd]['ls'] = dct[cmpd]['structures'][ls_ind]
+    return short_dct
+
+def get_deviation(structure, params_dct):
+    deviations = []
+    gii_calc = GIICalculator()
+    for site in structure:
+        if np.sign(site.specie.oxi_state) == 1:
+            site_index = structure.index(site)
+            neighbors = gii_calc.get_neighbors(structure, site_index)
+            site_distances = []
+            for neighbor in neighbors:
+                distance = neighbor.nn_distance
+                site_distances.append(distance)
+            mean_distance = np.mean(site_distances)
+
+            cation = site.specie
+            anion = neighbors[0].specie
+            ind = get_cation_anion_pair_index(cation, anion, params_dct)
+            ideal = params_dct['R0'][ind]-params_dct['B'][ind]*np.log(cation.oxi_state/len(neighbors))
+            deviations.append(ideal - mean_distance)
+    return deviations
+
+def get_gs_ls_deviations(dct, params_dct):
+    short_dct = get_gs_and_ls(dct)
+    gs_deviations = []
+    ls_deviations = []
+
+    for cmpd in tqdm(list(short_dct.keys())):
+        gs = short_dct[cmpd]['gs']
+        ls = short_dct[cmpd]['ls']
+        gs_s_deviations = get_deviation(gs, params_dct)
+        ls_s_deviations = get_deviation(ls, params_dct)
+
+        gs_deviations += gs_s_deviations
+        ls_deviations += ls_s_deviations
+
+    return gs_deviations, ls_deviations
+
+def bar_plot(h):
+    xs = []
+    ys = []
+    for x_ind in range(len(h[0])):
+        y = h[0][x_ind]
+        x = np.round(h[1][x_ind] + 0.01, 2)
+        xs.append(x)
+        ys.append(y)
+    return xs, ys
