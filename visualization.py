@@ -606,13 +606,16 @@ def plot_broken_bar(dcts_list, cations_list, unique_coords_list, counts_list, wi
                 if val > max_val:
                     max_val = val
                 alpha = count / np.max(counts)
-                ax.broken_barh([(val-width, 2*width)], y_val, facecolors=(color), label=cn, alpha=alpha)
+                #ax.broken_barh([(val-width, 2*width)], y_val, facecolors=(color), label=cn, alpha=alpha)
+                #print(val, y_val[0])
+                ax.scatter(val, y_val[0], facecolor='none', color=color, label=cn, s=alpha*200)
 
     handles, labels = ax.get_legend_handles_labels()
     by_label = OrderedDict(zip(labels, handles))
     ax.legend(by_label.values(), by_label.keys(), title='Coordination Number', ncol=2)
     ax.set_xlim(0, max_val + 0.2)
-    ax.set_yticks([15+i*10 for i in range(len(cations_list))])
+    #ax.set_yticks([15+i*10 for i in range(len(cations_list))])
+    ax.set_yticks([(i+1)*10 for i in range(len(cations_list))])
     ax.set_yticklabels([str(c) for c in cations_list])
     ax.set_xlabel('$Range \enspace of \enspace \overline{d}_{M-O}, \enspace \AA$')
 
